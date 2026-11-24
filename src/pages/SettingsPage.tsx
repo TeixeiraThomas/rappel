@@ -3,21 +3,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { applyTheme } from '../lib/theme'
 import { askConfirm, toast } from '../components/ui'
 import { db, getSettings, saveSettings } from '../db'
-import { exportBackup, restoreBackup, validateBackup, type Backup } from '../lib/backup'
+import { DataSafety } from '../components/DataSafety'
+import { autoBackup, restoreBackupSafely } from '../lib/autobackup'
+import { exportBackup, markBackupDone, validateBackup, type Backup } from '../lib/backup'
+import { downloadFile } from '../lib/download'
 import { csvToCards, detectDelimiter, importCards, parseCsv, type CsvParsed } from '../lib/csv'
 import { buildTree, createDeck, flattenTree } from '../lib/decks'
 import { DEFAULT_SETTINGS, type Settings } from '../types'
-
-function download(filename: string, content: string, mime: string) {
-  const url = URL.createObjectURL(new Blob([content], { type: mime }))
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 2000)
-}
 
 const num = (v: string, min: number, max: number, fallback: number) => {
   const n = Math.round(Number(v))
@@ -65,7 +57,8 @@ export function SettingsPage() {
       deckId = (await createDeck(csv.name.replace(/\.[^.]+$/, '') || 'Import CSV')).id
     }
     const r = await importCards(csv.parsed.cards, deckId, skipDup)
-    toast(`${r.added} carte${r.added > 1 ? 's' : ''} importée${r.added > 1 ? 's' : ''}${r.duplicates ? `, ${r.duplicates} doublon(s) ignoré(s)` : ''}`)
+    const warn = r.safetyBackup ? '' : ' — sauvegarde de sécurité impossible (espace insuffisant ?)'
+    toast(`${r.added} carte${r.added > 1 ? 's' : ''} importée${r.added > 1 ? 's' : ''}${r.duplicates ? `, ${r.duplicates} doublon(s) ignoré(s)` : ''}${warn}`)
     setCsv(null)
   }
 
@@ -83,7 +76,7 @@ export function SettingsPage() {
       const SQL = await loadSqlJs()
       const r = await importApkg(await file.arrayBuffer(), SQL, file.name.replace(/\.[^.]+$/, '') || 'Import Anki')
       const ignored = r.skipped ? `, ${r.skipped} ignorée(s)` : ''
-      setApkgMsg({ ok: true, text: `${r.notes} notes (${r.cards} cartes) et ${r.images} image(s) importées${ignored}.` })
+      setApkgMsg({ ok: true, text: `${r.notes} notes (${r.cards} cartes) et ${r.images} image(s) importées${ignored}.${r.safetyBackup ? '' : ' Sauvegarde de sécurité impossible (espace insuffisant ?).'}` })
     } catch (e) {
       setApkgMsg({ ok: false, text: (e as Error).message })
     } finally {
@@ -99,7 +92,8 @@ export function SettingsPage() {
   const doExport = async () => {
     const data = await exportBackup()
     const stamp = new Date().toISOString().slice(0, 10)
-    download(`rappel-sauvegarde-${stamp}.json`, JSON.stringify(data), 'application/json')
+    downloadFile(`rappel-sauvegarde-${stamp}.json`, JSON.stringify(data), 'application/json')
+    await markBackupDone()
     toast('Sauvegarde exportée')
   }
 
@@ -128,8 +122,8 @@ export function SettingsPage() {
       if (!ok) return
     }
     try {
-      const r = await restoreBackup(pending, mode)
-      toast(`Restauré : ${r.notes} notes, ${r.cards} cartes`)
+      const r = await restoreBackupSafely(pending, mode)
+      toast(`Restauré : ${r.notes} notes, ${r.cards} cartes${r.safetyBackup ? '' : ' (sauvegarde de sécurité impossible)'}`)
       setPending(null)
       const fresh = await getSettings()
       setS(fresh)
@@ -147,6 +141,7 @@ export function SettingsPage() {
       danger: true,
     })
     if (!ok) return
+    await autoBackup('Avant effacement total')
     await Promise.all([db.decks.clear(), db.notes.clear(), db.cards.clear(), db.reviews.clear(), db.media.clear(), db.kv.clear()])
     setS(DEFAULT_SETTINGS)
     applyTheme(DEFAULT_SETTINGS.theme)
@@ -261,6 +256,12 @@ export function SettingsPage() {
           </div>
         )}
       </section>
+
+      <DataSafety
+        reminderDays={s.backupReminderDays}
+        onReminderDays={(n) => update({ backupReminderDays: n })}
+        onRestored={() => getSettings().then((v) => { setS(v); applyTheme(v.theme) })}
+      />
 
       <section className="card section">
         <h2>Zone dangereuse</h2>

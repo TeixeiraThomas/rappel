@@ -1,6 +1,7 @@
 import { db } from '../db'
 import type { NoteType } from '../types'
 import { hasCloze } from './cloze'
+import { autoBackup } from './autobackup'
 import { createNote, normalizeTags } from './notes'
 
 /** Analyse un CSV (guillemets « " » avec doublement, retours à la ligne dans les champs, BOM, CRLF). */
@@ -84,10 +85,13 @@ export function csvToCards(rows: string[][]): CsvParsed {
 export interface CsvImportResult {
   added: number
   duplicates: number
+  /** Faux si la sauvegarde de sécurité préalable a échoué (quota…). */
+  safetyBackup: boolean
 }
 
 /** Importe les cartes dans un paquet ; les doublons (même recto + verso) sont ignorés. */
 export async function importCards(cards: CsvCard[], deckId: string, skipDuplicates = true): Promise<CsvImportResult> {
+  const safetyBackup = await autoBackup('Avant import CSV')
   const seen = new Set<string>()
   if (skipDuplicates) {
     await db.notes.where('deckId').equals(deckId).each((n) => seen.add(`${n.front}\u0000${n.back}`))
@@ -104,5 +108,5 @@ export async function importCards(cards: CsvCard[], deckId: string, skipDuplicat
     await createNote({ deckId, type: c.type, front: c.front, back: c.back, tags: c.tags })
     added++
   }
-  return { added, duplicates }
+  return { added, duplicates, safetyBackup }
 }

@@ -291,3 +291,7 @@ button.chip { cursor: pointer; }
 .csv-preview { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 .csv-preview td, .csv-preview th { border: 1px solid var(--border); padding: 4px 8px; text-align: left; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ===== Bandeau et listes (session 2) ===== */
+.banner { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; margin-bottom: 14px; border-color: color-mix(in srgb, var(--hard) 55%, var(--border)); }
+.plain-list { list-style: none; margin: 0; padding: 0; }

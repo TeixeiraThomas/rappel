@@ -27,6 +27,8 @@ class RappelDB extends Dexie {
       media: 'id',
       kv: 'key',
     })
+    // v2 : index sur la date de création des notes (rappel de sauvegarde).
+    this.version(2).stores({ notes: 'id, deckId, *tags, updated, created' })
   }
 }
 

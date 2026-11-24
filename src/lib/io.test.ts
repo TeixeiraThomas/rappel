@@ -44,8 +44,8 @@ describe('CSV', () => {
     await reset()
     const d = await createDeck('D')
     const cards = csvToCards(parseCsv('Q1;R1\nQ1;R1\nQ2;R2')).cards
-    expect(await importCards(cards, d.id)).toEqual({ added: 2, duplicates: 1 })
-    expect(await importCards(cards, d.id)).toEqual({ added: 0, duplicates: 3 })
+    expect(await importCards(cards, d.id)).toMatchObject({ added: 2, duplicates: 1 })
+    expect(await importCards(cards, d.id)).toMatchObject({ added: 0, duplicates: 3 })
     expect(await db.cards.count()).toBe(2)
   })
 })

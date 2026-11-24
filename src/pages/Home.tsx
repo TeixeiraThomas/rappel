@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo, useState } from 'react'
+import { BackupReminder } from '../components/BackupReminder'
 import { IconChevron, IconMore, IconPlus } from '../components/icons'
 import { askConfirm, askText, showMenu, toast } from '../components/ui'
 import { db, getSettings } from '../db'
@@ -113,6 +114,8 @@ export function Home() {
         <h1>Paquets</h1>
         <button className="btn small" onClick={() => newDeck()}><IconPlus />Paquet</button>
       </div>
+
+      <BackupReminder />
 
       {decks.length === 0 ? (
         <div className="empty card">

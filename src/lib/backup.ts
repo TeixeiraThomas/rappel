@@ -84,3 +84,53 @@ export async function restoreBackup(data: Backup, mode: 'replace' | 'merge'): Pr
   clearMediaCache()
   return { decks: data.decks.length, notes: data.notes.length, cards: data.cards.length, reviews: data.reviews.length }
 }
+
+// --- Rappel de sauvegarde -------------------------------------------------------------------
+
+const DAY = 86_400_000
+
+/** Mémorise qu'une sauvegarde vient d'être exportée. */
+export async function markBackupDone(now = Date.now()): Promise<void> {
+  await db.kv.put({ key: 'lastBackup', value: now })
+  await db.kv.delete('backupSnoozeUntil')
+}
+
+/** Repousse le rappel (« Plus tard »). */
+export async function snoozeBackupReminder(days = 3, now = Date.now()): Promise<void> {
+  await db.kv.put({ key: 'backupSnoozeUntil', value: now + days * DAY })
+}
+
+/**
+ * Faut-il rappeler de sauvegarder ? Oui s'il y a des données et que la dernière sauvegarde
+ * (ou, à défaut, la plus ancienne note) date de plus de `intervalDays` jours, sauf report en cours.
+ * intervalDays = 0 désactive le rappel.
+ */
+export function backupReminderDue(o: {
+  now: number
+  lastBackup: number | null
+  snoozeUntil: number | null
+  firstNoteAt: number | null
+  noteCount: number
+  intervalDays: number
+}): boolean {
+  if (o.intervalDays <= 0 || o.noteCount === 0) return false
+  if (o.snoozeUntil !== null && o.now < o.snoozeUntil) return false
+  const reference = o.lastBackup ?? o.firstNoteAt
+  if (reference === null) return false
+  return o.now - reference >= o.intervalDays * DAY
+}
+
+export async function getBackupStatus(): Promise<{ lastBackup: number | null; snoozeUntil: number | null; firstNoteAt: number | null; noteCount: number }> {
+  const [last, snooze, noteCount, first] = await Promise.all([
+    db.kv.get('lastBackup'),
+    db.kv.get('backupSnoozeUntil'),
+    db.notes.count(),
+    db.notes.orderBy('created').first(),
+  ])
+  return {
+    lastBackup: (last?.value as number | undefined) ?? null,
+    snoozeUntil: (snooze?.value as number | undefined) ?? null,
+    firstNoteAt: first?.created ?? null,
+    noteCount,
+  }
+}

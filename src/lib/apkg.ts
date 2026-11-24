@@ -5,6 +5,7 @@ import JSZip from 'jszip'
 import type { Database, SqlJsStatic } from 'sql.js'
 import { db, uid } from '../db'
 import type { Card, Note, NoteType } from '../types'
+import { autoBackup } from './autobackup'
 import { getOrCreateDeckPath } from './decks'
 import { makeNote } from './notes'
 
@@ -21,6 +22,7 @@ export interface ApkgResult {
   cards: number
   images: number
   skipped: number
+  safetyBackup: boolean
 }
 
 const IMAGE_MIME: Record<string, string> = {
@@ -80,6 +82,7 @@ function toBase64(bytes: Uint8Array): string {
  */
 export async function importApkg(bytes: ArrayBuffer | Uint8Array, SQL: SqlJsStatic, defaultDeckName = 'Import Anki'): Promise<ApkgResult> {
   const zip = await JSZip.loadAsync(bytes)
+  let safetyBackup = true
   // collection.anki21 (le plus complet) avant collection.anki2 (parfois un simple message « mettez à jour »).
   const dbFile = zip.file('collection.anki21') ?? zip.file('collection.anki2')
   if (!dbFile) {
@@ -103,6 +106,9 @@ export async function importApkg(bytes: ArrayBuffer | Uint8Array, SQL: SqlJsStat
     if (noteRows.length === 1 && /update to the latest|mettez à jour/i.test(String(noteRows[0].flds))) {
       throw new Error("Ce paquet a été exporté au nouveau format. Ré-exportez-le depuis Anki avec « Prise en charge des anciennes versions d'Anki ».")
     }
+
+    // Sauvegarde de sécurité une fois le fichier jugé lisible, avant d'écrire quoi que ce soit.
+    safetyBackup = await autoBackup('Avant import Anki (.apkg)')
 
     // Médias : fichier « media » = { "0": "image.png", ... }, contenu dans l'entrée zip « 0 ».
     const mediaIdByName = new Map<string, string>()
@@ -185,7 +191,7 @@ export async function importApkg(bytes: ArrayBuffer | Uint8Array, SQL: SqlJsStat
     }
     for (let i = 0; i < cards.length; i += CHUNK) await db.cards.bulkAdd(cards.slice(i, i + CHUNK))
 
-    return { decks: deckCache.size, notes: notes.length, cards: cards.length, images, skipped }
+    return { decks: deckCache.size, notes: notes.length, cards: cards.length, images, skipped, safetyBackup }
   } finally {
     sqlite.close()
   }

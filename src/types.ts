@@ -82,6 +82,8 @@ export interface Settings {
   /** Mode « taper la réponse » activé par défaut en révision. */
   typedAnswer: boolean
   theme: 'dark' | 'light' | 'auto'
+  /** Rappel de sauvegarde tous les N jours (0 = désactivé). */
+  backupReminderDays: number
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -91,4 +93,5 @@ export const DEFAULT_SETTINGS: Settings = {
   maxInterval: 36500,
   typedAnswer: false,
   theme: 'dark',
+  backupReminderDays: 7,
 }
