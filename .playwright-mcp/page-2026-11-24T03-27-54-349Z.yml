@@ -1,0 +1,12 @@
+- generic [ref=e3]:
+  - navigation "Navigation principale" [ref=e134]:
+    - link "Paquets" [ref=e135] [cursor=pointer]:
+      - /url: "#/"
+    - link "Parcourir" [ref=e139] [cursor=pointer]:
+      - /url: "#/browse"
+    - link "Stats" [ref=e143] [cursor=pointer]:
+      - /url: "#/stats"
+    - link "Réglages" [ref=e146] [cursor=pointer]:
+      - /url: "#/settings"
+  - main [ref=e150]:
+    - heading "Statistiques" [level=1] [ref=e151]

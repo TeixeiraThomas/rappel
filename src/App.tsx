@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { getSettings } from './db'
 import { IconChart, IconDecks, IconSearch, IconSettings } from './components/icons'
 import { DialogHost } from './components/ui'
+import { applyTheme } from './lib/theme'
 import { href, useRoute } from './router'
 import { Browse } from './pages/Browse'
 import { Home } from './pages/Home'
@@ -9,13 +10,6 @@ import { NoteEditor } from './pages/NoteEditor'
 import { SettingsPage } from './pages/SettingsPage'
 import { Stats } from './pages/Stats'
 import { Study } from './pages/Study'
-
-/** Applique le thème (sombre par défaut, clair, ou celui du système). */
-export function applyTheme(theme: 'dark' | 'light' | 'auto') {
-  const resolved = theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : theme
-  document.documentElement.dataset.theme = resolved
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', resolved === 'light' ? '#f4f5f8' : '#0f1115')
-}
 
 export default function App() {
   const route = useRoute()

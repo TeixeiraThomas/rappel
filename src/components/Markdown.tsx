@@ -9,6 +9,15 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
     node.setAttribute('target', '_blank')
     node.setAttribute('rel', 'noopener noreferrer')
   }
+  // Bouton « Copier » ajouté comme nœud DOM (pas de retouche du HTML après assainissement).
+  if (node.tagName === 'PRE' && !node.querySelector('button[data-copy]')) {
+    const b = node.ownerDocument.createElement('button')
+    b.type = 'button'
+    b.className = 'copy'
+    b.setAttribute('data-copy', '')
+    b.textContent = 'Copier'
+    node.insertBefore(b, node.firstChild)
+  }
 })
 
 /** Rend du Markdown (+ HTML assaini, images locales, bouton « Copier » sur les blocs de code). */
@@ -25,9 +34,7 @@ export function Markdown({ md, className = '' }: { md: string; className?: strin
 
   const html = useMemo(() => {
     const raw = substituteMedia(mdToHtml(md))
-    const clean = DOMPurify.sanitize(raw, { ADD_ATTR: ['target'] })
-    // Ajout du bouton après l'assainissement : le HTML ajouté est statique et maîtrisé.
-    return clean.replace(/<pre>/g, '<pre><button type="button" class="copy" data-copy>Copier</button>')
+    return DOMPurify.sanitize(raw, { ADD_ATTR: ['target', 'data-copy'] })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [md, version])
 
