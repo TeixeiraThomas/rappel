@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
-    "test": "vitest run",
-    "icons": "node scripts/generate-icons.mjs"
+    "test": "node scripts/run-tool.mjs vitest run",
+    "icons": "node scripts/generate-icons.mjs",
+    "test:e2e": "node scripts/run-tool.mjs playwright test"
   },
   "dependencies": {
     "dexie": "^4.4.7",

@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { applyTheme } from '../lib/theme'
 import { askConfirm, toast } from '../components/ui'
 import { db, getSettings, saveSettings } from '../db'
-import { importApkg, loadSqlJs } from '../lib/apkg'
 import { exportBackup, restoreBackup, validateBackup, type Backup } from '../lib/backup'
 import { csvToCards, detectDelimiter, importCards, parseCsv, type CsvParsed } from '../lib/csv'
 import { buildTree, createDeck, flattenTree } from '../lib/decks'
@@ -79,6 +78,8 @@ export function SettingsPage() {
     setApkgBusy(true)
     setApkgMsg(null)
     try {
+      // Chargé à la demande : JSZip et sql.js (WASM) ne pèsent pas sur le démarrage.
+      const { importApkg, loadSqlJs } = await import('../lib/apkg')
       const SQL = await loadSqlJs()
       const r = await importApkg(await file.arrayBuffer(), SQL, file.name.replace(/\.[^.]+$/, '') || 'Import Anki')
       const ignored = r.skipped ? `, ${r.skipped} ignorée(s)` : ''

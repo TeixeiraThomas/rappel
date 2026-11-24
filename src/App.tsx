@@ -1,15 +1,17 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { getSettings } from './db'
 import { IconChart, IconDecks, IconSearch, IconSettings } from './components/icons'
 import { DialogHost } from './components/ui'
 import { applyTheme } from './lib/theme'
 import { href, useRoute } from './router'
-import { Browse } from './pages/Browse'
 import { Home } from './pages/Home'
-import { NoteEditor } from './pages/NoteEditor'
-import { SettingsPage } from './pages/SettingsPage'
-import { Stats } from './pages/Stats'
 import { Study } from './pages/Study'
+
+// Écrans secondaires chargés à la demande : démarrage plus rapide (tout reste précaché hors ligne).
+const Browse = lazy(() => import('./pages/Browse').then((m) => ({ default: m.Browse })))
+const NoteEditor = lazy(() => import('./pages/NoteEditor').then((m) => ({ default: m.NoteEditor })))
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
+const Stats = lazy(() => import('./pages/Stats').then((m) => ({ default: m.Stats })))
 
 export default function App() {
   const route = useRoute()
@@ -57,7 +59,7 @@ export default function App() {
           <a href={href('/settings')} className={active('settings')}><IconSettings />Réglages</a>
         </nav>
       )}
-      {studying ? page : <main className="content">{page}</main>}
+      <Suspense fallback={null}>{studying ? page : <main className="content">{page}</main>}</Suspense>
       <DialogHost />
     </div>
   )

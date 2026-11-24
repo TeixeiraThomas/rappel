@@ -44,6 +44,9 @@ export function Study({ deckId }: { deckId: string | null }) {
   const [total, setTotal] = useState(0)
   const [dx, setDx] = useState(0)
   const [, setTick] = useState(0)
+  // Attente : quand il ne reste que des cartes en apprentissage pas encore dues.
+  const [skipWait, setSkipWait] = useState(false)
+  const [clock, setClock] = useState(() => Date.now())
 
   const cards = useRef(new Map<string, Card>())
   const notes = useRef(new Map<string, Note>())
@@ -81,8 +84,30 @@ export function Study({ deckId }: { deckId: string | null }) {
   const card = queue.length ? cards.current.get(queue[0]) : undefined
   const note = card ? notes.current.get(card.noteId) : undefined
   const faces = useMemo(() => (card && note ? cardFaces(note, card.ord) : null), [card, note])
+  // Échéance la plus proche si TOUTES les cartes restantes sont en (ré)apprentissage et pas encore dues (0 = pas d'attente).
+  const waitUntil = useMemo(() => {
+    if (phase !== 'study' || skipWait || queue.length === 0) return 0
+    let min = Infinity
+    for (const id of queue) {
+      const c = cards.current.get(id)
+      if (!c || (c.state !== 1 && c.state !== 3) || c.due <= clock) return 0
+      min = Math.min(min, c.due)
+    }
+    return min
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, skipWait, queue, clock])
+
+  useEffect(() => {
+    if (!waitUntil) {
+      shownAt.current = Date.now()
+      return
+    }
+    const t = setInterval(() => setClock(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [waitUntil])
+
   // Intervalles calculés une seule fois par carte affichée : ce qui est montré = ce qui est appliqué.
-  const previews = useMemo(() => (card && settings ? previewAll(card, Date.now(), settings) : null), [card, settings])
+  const previews = useMemo(() => (card && settings ? previewAll(card, Date.now(), settings) : null), [card, settings, waitUntil])
   const comparison = useMemo(() => (revealed && typedMode && faces ? compareAnswer(typed, faces.expected) : null), [revealed, typedMode, faces, typed])
 
   const counts = useMemo(() => {
@@ -108,6 +133,8 @@ export function Study({ deckId }: { deckId: string | null }) {
     setTyped('')
     setDx(0)
     shownAt.current = Date.now()
+    setSkipWait(false)
+    setClock(Date.now())
     if (q.length === 0) setPhase('done')
   }
 
@@ -160,7 +187,7 @@ export function Study({ deckId }: { deckId: string | null }) {
   // Raccourcis clavier (PC).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (phase !== 'study' || e.ctrlKey || e.metaKey || e.altKey) return
+      if (phase !== 'study' || waitUntil || e.ctrlKey || e.metaKey || e.altKey) return
       const inField = (e.target as HTMLElement)?.tagName === 'TEXTAREA' || (e.target as HTMLElement)?.tagName === 'INPUT'
       if (e.key === 'Escape') return navigate('/')
       if (inField && !(e.key === 'Enter' && !e.shiftKey)) return
@@ -183,7 +210,7 @@ export function Study({ deckId }: { deckId: string | null }) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [phase, revealed, reveal, rate, undo, comparison])
+  }, [phase, waitUntil, revealed, reveal, rate, undo, comparison])
 
   useEffect(() => {
     if (phase === 'study' && typedMode && !revealed) typedRef.current?.focus()
@@ -242,6 +269,29 @@ export function Study({ deckId }: { deckId: string | null }) {
           <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn primary" onClick={() => navigate('/')}>Retour aux paquets</button>
             <button className="btn" onClick={() => navigate('/stats')}>Statistiques</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (waitUntil) {
+    const secs = Math.max(0, Math.ceil((waitUntil - clock) / 1000))
+    const mm = String(Math.floor(secs / 60)).padStart(2, '0')
+    const ss = String(secs % 60).padStart(2, '0')
+    return (
+      <div className="study">
+        <div className="study-top">
+          <button className="btn ghost icon" onClick={() => navigate('/')} aria-label="Quitter la séance"><IconBack /></button>
+          <strong className="grow">{deckName}</strong>
+          <button className="btn ghost icon small" onClick={undo} disabled={history.length === 0} aria-label="Annuler la dernière réponse"><IconUndo /></button>
+        </div>
+        <div className="empty card anim-in" style={{ margin: 'auto 0' }} role="status">
+          <h2>Prochaine carte dans {mm}:{ss}</h2>
+          <p>Il ne reste que des cartes en cours d'apprentissage. Faites une pause, ou continuez tout de suite.</p>
+          <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button className="btn primary" onClick={() => setSkipWait(true)}>Continuer maintenant</button>
+            <button className="btn" onClick={() => navigate('/')}>Terminer la séance</button>
           </div>
         </div>
       </div>
