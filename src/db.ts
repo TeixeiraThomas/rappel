@@ -29,6 +29,8 @@ class RappelDB extends Dexie {
     })
     // v2 : index sur la date de création des notes (rappel de sauvegarde).
     this.version(2).stores({ notes: 'id, deckId, *tags, updated, created' })
+    // v3 : index composé [état+échéance] pour construire la file d'étude sans lire toute la collection.
+    this.version(3).stores({ cards: 'id, noteId, deckId, due, state, [deckId+state], [state+due]' })
   }
 }
 

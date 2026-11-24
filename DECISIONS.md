@@ -67,3 +67,36 @@ Décisions prises en autonomie pendant la session (aucune question posée, comme
 39. **Confirmations de suppression** : déjà présentes pour paquet, carte, « tout effacer » et « tout remplacer » ; ajoutées pour la suppression d'une sauvegarde automatique. Aucune suppression sans dialogue de confirmation.
 40. **Sauvegarde automatique avant opération risquée** : import CSV, import `.apkg`, restauration JSON (fusion ou remplacement), restauration d'une sauvegarde automatique, et effacement total. Stockée dans une base IndexedDB **séparée** (`rappel-autobackups`) pour survivre à un effacement ou à une restauration ratée de la base principale ; 5 instantanés conservés ; restaurables ou téléchargeables depuis les Réglages. Si l'instantané est impossible (quota), l'opération continue mais l'utilisateur est averti.
 41. Base principale passée en version 2 (index `created` sur les notes) : migration automatique, sans perte.
+
+## Tests de bout en bout (Playwright)
+
+42. **Cible** : le **build de production** servi par `vite preview` (le service worker et le hors ligne n'existent pas en mode développement). `npm run test:e2e` construit puis teste ; un second serveur sert un build « GitHub Pages » (base `/rappel/`, dossier `dist-gh/`) pour la vérification des chemins.
+43. **Profils** : Chromium desktop, plus l'**émulation** iPhone 13 et Pixel 7 (taille d'écran, tactile, user-agent) **sur Chromium** : WebKit/Safari réel n'est pas disponible ici. Ce qui reste à valider sur de vrais téléphones est listé dans RAPPORT.md.
+44. **Balayage** : simulé avec de vrais événements tactiles (`Input.dispatchTouchEvent` via le protocole DevTools), avec des mouvements espacés de 16 ms et une pause avant de lever le doigt, pour éviter l'inertie (fling) de Chrome qui avale le « tap » suivant — artefact de simulation, pas un défaut de l'app.
+45. **Données de test** : insérées directement dans IndexedDB (`seed()`), ce qui permet 10 000 cartes en ~3 s ; l'état réel est relu de la même façon (`readTable()`), pour vérifier ce qui est vraiment enregistré et pas seulement ce qui est affiché.
+46. **Hors ligne** : vraie coupure réseau (`context.setOffline(true)`, vérifiée par l'échec d'un `fetch`), rechargements complets, écrans chargés à la demande, création/révision de cartes, import `.apkg` (WASM), puis retour du réseau.
+47. **Bug trouvé par ces tests et corrigé** : le conteneur défilant (la carte) annulait les gestes horizontaux (`pointercancel`) malgré `touch-action: pan-y` posé sur son parent → le balayage ne fonctionnait pas du tout au doigt. `touch-action` est désormais posé sur la carte elle-même.
+48. **Autre défaut trouvé et corrigé** : en enchaînant très vite les touches (Espace, 4, Espace…), la touche suivant une réponse pouvait être perdue pendant l'écriture en base. La notation est désormais **optimiste** : l'interface passe tout de suite à la carte suivante, l'écriture se fait en arrière-plan dans une file ordonnée ; l'annulation attend la fin des écritures en cours.
+
+## Accessibilité
+
+49. **Contrôle automatique** : axe-core (WCAG 2.0/2.1 A et AA, contrastes inclus) sur tous les écrans, dans les deux thèmes, y compris révision (recto, verso, mode saisie) et dialogues. Seuil : zéro violation.
+50. **Contrastes** : deux jetons d'accent — `--accent` (texte, icônes ; clair en thème sombre) et `--accent-bg` (fonds portant du texte blanc, ≥ 4,5:1) ; couleurs d'état (À revoir/Difficile/Bien/Facile) assombries en thème clair ; plus aucune opacité réduite sur du texte.
+51. **Clavier** : lien d'évitement « Aller au contenu », contour de focus visible partout (3 px), dialogues avec focus initial, piège à focus (Tab/Maj+Tab), Échap pour fermer et restitution du focus au bouton d'origine.
+52. **Lecteurs d'écran** : la ligne de paquet est un seul bouton nommé « Étudier <paquet> » (zone cliquable étendue à toute la ligne, compteurs lus séparément comme groupe), plus de contrôles imbriqués dans « Parcourir » (le bouton Suspendre est un frère du bouton d'édition), barre de progression nommée, champs de fichier étiquetés, notifications dans une zone `role="status"` toujours présente, `aria-current` dans la navigation, titre de page mis à jour à chaque écran.
+53. **Mouvement** : animations discrètes (apparition 0,12–0,2 s) désactivées par `prefers-reduced-motion`.
+
+## Performances
+
+54. **10 000 cartes** (10 paquets × 1 000) : accueil, parcourir (paginé par 100 : jamais 10 000 nœuds DOM), recherche, statistiques, démarrage de séance et enchaînement des réponses sont tous < 1 s en mesure isolée (détail dans RAPPORT.md).
+55. **File d'étude indexée** : base en version 3 avec index composé `[état+échéance]` ; la file lit uniquement les cartes à étudier (nouvelles lues dans l'ordre jusqu'au plafond du jour) au lieu de charger toute la collection. Les **compteurs de l'accueil** parcourent encore toutes les cartes en mémoire : suffisant à 10 000 cartes, à indexer si la collection dépasse ~50 000.
+
+## Finitions
+
+56. **Erreurs** : messages en français via `friendlyError()` (stockage plein, base inaccessible, version trop récente…) ; écran d'erreur dédié si IndexedDB est bloqué (navigation privée) ; `ErrorBoundary` par écran contre la page blanche ; filet `unhandledrejection` → notification lisible.
+57. **Écrans vides** : accueil (bienvenue), parcourir (aucune carte / aucun résultat), statistiques (pas encore de données), accueil quand tout est révisé (« Rien à étudier pour le moment »), adresse inconnue (« Page introuvable »).
+58. **Éditeur** : confirmation avant de quitter avec du texte non enregistré (pas de confirmation si rien n'a été saisi).
+
+## GitHub Pages
+
+59. `node scripts/serve-gh.mjs` construit avec `BASE_PATH=/rappel/` dans `dist-gh/` et le sert ; les tests vérifient : aucune ressource en 404 ni hors de `/rappel/`, manifeste (`start_url`, `scope`, icônes), service worker de portée `/rappel/`, fonctionnement hors ligne et WASM de l'import `.apkg` sous le sous-dossier.

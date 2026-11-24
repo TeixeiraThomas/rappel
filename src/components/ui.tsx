@@ -41,14 +41,21 @@ export function toast(message: string): void {
   toastTimer = window.setTimeout(() => setToastRef?.(null), 2600)
 }
 
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
 export function DialogHost() {
   const [dialog, setDialog] = useState<DialogState | null>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [text, setText] = useState('')
+  const boxRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  // Élément qui avait le focus avant l'ouverture : le focus lui est rendu à la fermeture.
+  const returnFocus = useRef<HTMLElement | null>(null)
+  const wasOpen = useRef(false)
 
   useEffect(() => {
     setDialogRef = (d) => {
+      if (d && !wasOpen.current) returnFocus.current = document.activeElement as HTMLElement | null
       setDialog(d)
       if (d?.kind === 'text') setText(d.value)
     }
@@ -59,8 +66,18 @@ export function DialogHost() {
     }
   }, [])
 
+  // Focus initial à l'ouverture ; restitution à la fermeture.
   useEffect(() => {
-    if (dialog?.kind === 'text') setTimeout(() => inputRef.current?.select(), 30)
+    if (dialog) {
+      wasOpen.current = true
+      if (dialog.kind === 'text') setTimeout(() => inputRef.current?.select(), 0)
+      else setTimeout(() => boxRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus(), 0)
+    } else if (wasOpen.current) {
+      wasOpen.current = false
+      const el = returnFocus.current
+      returnFocus.current = null
+      if (el && document.contains(el)) el.focus()
+    }
   }, [dialog])
 
   const close = (result?: string | boolean | null) => {
@@ -69,12 +86,33 @@ export function DialogHost() {
     setDialog(null)
   }
 
+  // Échap ferme ; Tab / Maj+Tab restent dans le dialogue (piège à focus).
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation()
+      close(null)
+    } else if (e.key === 'Tab') {
+      const items = [...(boxRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])]
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      const active = document.activeElement
+      if (e.shiftKey && (active === first || !boxRef.current?.contains(active))) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && (active === last || !boxRef.current?.contains(active))) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+  }
+
   return (
     <>
       {dialog && (
-        <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && close(null)}>
-          <div className="dialog" role="dialog" aria-modal="true" aria-label={dialog.title}>
-            <h2>{dialog.title}</h2>
+        <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && close(null)} onKeyDown={onKeyDown}>
+          <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" ref={boxRef}>
+            <h2 id="dialog-title">{dialog.title}</h2>
             {dialog.kind === 'text' && (
               <form
                 onSubmit={(e) => {
@@ -82,8 +120,10 @@ export function DialogHost() {
                   if (text.trim()) close(text.trim())
                 }}
               >
-                {dialog.label && <div className="muted small" style={{ marginBottom: 6 }}>{dialog.label}</div>}
-                <input ref={inputRef} type="text" value={text} onChange={(e) => setText(e.target.value)} autoFocus />
+                <label className="field" style={{ marginBottom: 0 }}>
+                  <span className="lbl">{dialog.label ?? dialog.title}</span>
+                  <input ref={inputRef} type="text" value={text} onChange={(e) => setText(e.target.value)} />
+                </label>
                 <div className="actions">
                   <button type="button" className="btn" onClick={() => close(null)}>Annuler</button>
                   <button type="submit" className="btn primary" disabled={!text.trim()}>{dialog.okLabel}</button>
@@ -118,7 +158,9 @@ export function DialogHost() {
           </div>
         </div>
       )}
-      {toastMsg && <div className="toast" role="status">{toastMsg}</div>}
+      <div className="toast-region" role="status" aria-live="polite">
+        {toastMsg && <div className="toast">{toastMsg}</div>}
+      </div>
     </>
   )
 }

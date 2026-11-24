@@ -39,9 +39,9 @@ test.describe('Hors ligne', () => {
     await expect(page.getByRole('heading', { name: 'Paquets', level: 1 })).toBeVisible()
     await page.goto('/#/settings')
     await page.reload()
-    await expect(page.getByRole('heading', { name: 'Réglages' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Réglages', level: 1 })).toBeVisible()
     await page.goto('/#/stats')
-    await expect(page.getByRole('heading', { name: 'Statistiques' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Statistiques', level: 1 })).toBeVisible()
 
     // Création et révision hors ligne
     await page.goto('/#/')

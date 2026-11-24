@@ -65,7 +65,7 @@ test.describe('Build GitHub Pages (base /rappel/)', () => {
     await context.setOffline(true)
     await page.goto(BASE + '#/settings')
     await page.reload()
-    await expect(page.getByRole('heading', { name: 'Réglages' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Réglages', level: 1 })).toBeVisible()
     // Image de marque (relative) et navigation interne OK hors ligne
     await page.getByRole('link', { name: 'Paquets' }).click()
     await expect(page.getByRole('heading', { name: 'Paquets', level: 1 })).toBeVisible()

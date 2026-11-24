@@ -13,6 +13,11 @@ sur iPhone, Android et PC. Toutes les données restent sur l'appareil (IndexedDB
 - **Mode « taper la réponse »** : compare la saisie à la bonne réponse (tolérant à la casse/accents, détecte « presque », affiche les différences).
 - **Import CSV** (`recto;verso;tags`), **sauvegarde/restauration JSON** complète, **import de paquets Anki (.apkg)**.
 - **Statistiques** : à revoir aujourd'hui, série de jours, taux de réussite, calendrier d'activité, prévision sur 30 jours.
+- **Sécurité des données** : stockage persistant demandé au navigateur (état affiché dans les Réglages), rappel de sauvegarde régulier
+  (réglable), confirmation avant toute suppression, **sauvegarde automatique avant chaque import ou restauration** (5 dernières
+  gardées, restaurables en un clic, dans une base séparée).
+- **Accessibilité** : navigation complète au clavier, lien d'évitement, dialogues à focus piégé, contrastes WCAG AA vérifiés, compatible lecteurs d'écran, respecte « réduire les animations ».
+- **Robustesse** : messages d'erreur en français, écran dédié si le stockage local est bloqué, notation instantanée (écriture en arrière-plan).
 
 ### Raccourcis clavier (révision)
 
@@ -35,16 +40,32 @@ Prérequis : Node.js 20+ (testé avec Node 24).
 ```bash
 npm install
 npm run dev        # serveur de développement : http://localhost:5173
-npm test           # tests unitaires (Vitest)
-npm run build      # build de production dans dist/
+npm test           # tests unitaires (Vitest, ~70 tests)
+npm run test:e2e   # tests de bout en bout (Playwright : desktop + émulation iPhone + Android)
+npm run build      # vérification TypeScript + build de production dans dist/
 npm run preview    # sert le build (nécessaire pour tester le mode hors ligne / l'installation)
 npm run icons      # régénère les icônes PWA (public/)
+node scripts/serve-gh.mjs   # construit « comme GitHub Pages » (base /rappel/) et le sert sur :4174
 ```
 
 > Le service worker (hors ligne, installation) n'est actif que sur le **build** (`npm run build` puis `npm run preview`) et en HTTPS ou sur `localhost`.
 
-> **Windows** : lancez les commandes depuis un terminal dont le chemin respecte la casse réelle du dossier
-> (`C:\...`). Une casse différente (`c:\...`) peut faire échouer Vitest.
+> **Windows** : `npm test` et `npm run test:e2e` passent par `scripts/run-tool.mjs`, qui corrige automatiquement
+> la casse du chemin (`c:\...` / `C:\...`). Pour lancer Vitest ou Playwright directement, utilisez le chemin à la casse réelle.
+
+### Tests de bout en bout
+
+```bash
+npx playwright install chromium     # une seule fois : télécharge le navigateur de test
+npm run test:e2e                    # tout : construit l'app puis lance ~115 tests (≈ 2 min)
+npm run test:e2e -- study           # un seul fichier (cards, study, import-export, offline, a11y, perf, safety-polish, ghpages)
+npm run test:e2e -- --project=iphone
+```
+
+Ils couvrent : création de cartes, révision au clavier et au balayage tactile, mode « taper la réponse », imports CSV / JSON / `.apkg`,
+export et restauration, **hors ligne avec coupure réseau réelle**, accessibilité (axe-core + clavier), performances sur 10 000 cartes,
+et le build GitHub Pages (chemins de base). Les profils iPhone et Android sont des **émulations sur Chromium** : ils ne remplacent pas
+un essai sur un vrai téléphone.
 
 ## Installer l'application
 
@@ -75,6 +96,9 @@ L'app est 100 % statique (dossier `dist/`) et utilise un routage par `#`, donc a
 1. Poussez le dépôt sur GitHub (branche `main`).
 2. Dépôt → **Settings → Pages → Source : GitHub Actions**.
 3. Le workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) construit (avec `BASE_PATH=/<nom-du-dépôt>/`) et publie à chaque push. L'app est alors à `https://<utilisateur>.github.io/<dépôt>/`.
+4. **Vérifier avant de pousser** : `node scripts/serve-gh.mjs` construit avec la base `/rappel/` et sert le résultat sur <http://localhost:4174/rappel/> ;
+   `npm run test:e2e -- ghpages` contrôle automatiquement les chemins (assets, manifeste, icônes, service worker, hors ligne).
+   Si votre dépôt ne s'appelle pas `rappel`, lancez `BASE_PATH=/mon-depot/ node scripts/serve-gh.mjs` (en PowerShell : `$env:BASE_PATH='/mon-depot/'; node scripts/serve-gh.mjs`).
 
 ### Option B — Netlify / Cloudflare Pages / Vercel
 

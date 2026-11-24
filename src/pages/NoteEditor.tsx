@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Markdown } from '../components/Markdown'
 import { IconBack } from '../components/icons'
 import { askConfirm, toast } from '../components/ui'
+import { friendlyError } from '../lib/errors'
 import { db } from '../db'
 import { clozeNumbers } from '../lib/cloze'
 import { buildTree, flattenTree } from '../lib/decks'
@@ -145,8 +146,20 @@ export function NoteEditor({ noteId, initialDeck }: { noteId: string | null; ini
         } else back('/')
       }
     } catch (e) {
-      toast((e as Error).message)
+      toast(friendlyError(e))
     }
+  }
+
+  /** Retour : demande confirmation si du texte saisi risque d'être perdu. */
+  const leave = async () => {
+    const dirty = noteId
+      ? !!existing && (front !== existing.front || back_ !== existing.back || tags.trim() !== existing.tags.join(' '))
+      : front.trim() !== '' || back_.trim() !== ''
+    if (dirty) {
+      const ok = await askConfirm({ title: 'Quitter sans enregistrer ?', message: 'Les modifications de cette carte seront perdues.', okLabel: 'Quitter', danger: true })
+      if (!ok) return
+    }
+    back(noteId ? '/browse' : '/')
   }
 
   const remove = async () => {
@@ -182,11 +195,11 @@ export function NoteEditor({ noteId, initialDeck }: { noteId: string | null; ini
   return (
     <>
       <div className="page-head">
-        <button className="btn ghost icon" onClick={() => back('/')} aria-label="Retour"><IconBack /></button>
+        <button className="btn ghost icon" onClick={leave} aria-label="Retour"><IconBack /></button>
         <h1>{noteId ? 'Modifier la carte' : 'Nouvelle carte'}</h1>
       </div>
 
-      <input ref={fileRef} type="file" accept="image/*" className="sr-only" tabIndex={-1}
+      <input ref={fileRef} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-label="Choisir une image à insérer"
         onChange={(e) => { const f = e.target.files?.[0]; if (f) void insertImage(f, targetField.current); e.target.value = '' }} />
 
       <label className="field">

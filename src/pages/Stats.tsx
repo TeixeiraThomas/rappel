@@ -78,6 +78,13 @@ export function Stats() {
     <>
       <div className="page-head"><h1>Statistiques</h1></div>
 
+      {data.reviews.length === 0 && (
+        <div className="card panel anim-in" role="status">
+          <h2>Pas encore de statistiques</h2>
+          <p className="muted" style={{ margin: 0 }}>Révisez quelques cartes : votre série de jours, votre taux de réussite, le calendrier d'activité et la prévision des révisions apparaîtront ici.</p>
+        </div>
+      )}
+
       <div className="kpis">
         <div className="card kpi">
           <div className="v" style={{ color: 'var(--due)' }}>{data.nDue + data.nLearn}</div>

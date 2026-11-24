@@ -76,26 +76,25 @@ export function Browse({ initialQuery }: { initialQuery: string }) {
           {results.slice(0, limit).map((n) => {
             const info = cardsByNote.get(n.id)
             return (
-              <button key={n.id} className="note-item" onClick={() => navigate(`/edit/${n.id}`)}>
-                <div className="title">{preview(stripCloze(n.front), 120)}</div>
-                <div className="sub">{n.type === 'cloze' ? preview(n.back || '—', 120) : preview(n.back, 120)}</div>
-                <div className="meta">
-                  <span className="chip">{paths.get(n.deckId) ?? '?'}</span>
-                  <span className="muted small">{TYPE_LABEL[n.type]} · {info?.n ?? 0} carte{(info?.n ?? 0) > 1 ? 's' : ''}</span>
-                  {info?.suspended && <span className="badge">suspendue</span>}
-                  {n.tags.map((t) => <span key={t} className="muted small">#{t}</span>)}
-                  <span className="grow" />
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    className="muted small"
-                    onClick={(e) => { e.stopPropagation(); void setSuspended(n.id, !info?.suspended) }}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); void setSuspended(n.id, !info?.suspended) } }}
-                  >
-                    {info?.suspended ? 'Réactiver' : 'Suspendre'}
-                  </span>
-                </div>
-              </button>
+              <div key={n.id} className="note-row">
+                <button className="note-item" onClick={() => navigate(`/edit/${n.id}`)}>
+                  <div className="title">{preview(stripCloze(n.front), 120)}</div>
+                  <div className="sub">{n.type === 'cloze' ? preview(n.back || '—', 120) : preview(n.back, 120)}</div>
+                  <div className="meta">
+                    <span className="chip">{paths.get(n.deckId) ?? '?'}</span>
+                    <span className="muted small">{TYPE_LABEL[n.type]} · {info?.n ?? 0} carte{(info?.n ?? 0) > 1 ? 's' : ''}</span>
+                    {info?.suspended && <span className="badge">suspendue</span>}
+                    {n.tags.map((t) => <span key={t} className="muted small">#{t}</span>)}
+                  </div>
+                </button>
+                <button
+                  className="btn ghost small"
+                  onClick={() => void setSuspended(n.id, !info?.suspended)}
+                  aria-label={`${info?.suspended ? 'Réactiver' : 'Suspendre'} : ${preview(stripCloze(n.front), 40)}`}
+                >
+                  {info?.suspended ? 'Réactiver' : 'Suspendre'}
+                </button>
+              </div>
             )
           })}
         </div>

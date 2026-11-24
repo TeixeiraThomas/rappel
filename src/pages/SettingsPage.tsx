@@ -7,6 +7,7 @@ import { DataSafety } from '../components/DataSafety'
 import { autoBackup, restoreBackupSafely } from '../lib/autobackup'
 import { exportBackup, markBackupDone, validateBackup, type Backup } from '../lib/backup'
 import { downloadFile } from '../lib/download'
+import { friendlyError } from '../lib/errors'
 import { csvToCards, detectDelimiter, importCards, parseCsv, type CsvParsed } from '../lib/csv'
 import { buildTree, createDeck, flattenTree } from '../lib/decks'
 import { DEFAULT_SETTINGS, type Settings } from '../types'
@@ -78,7 +79,7 @@ export function SettingsPage() {
       const ignored = r.skipped ? `, ${r.skipped} ignorée(s)` : ''
       setApkgMsg({ ok: true, text: `${r.notes} notes (${r.cards} cartes) et ${r.images} image(s) importées${ignored}.${r.safetyBackup ? '' : ' Sauvegarde de sécurité impossible (espace insuffisant ?).'}` })
     } catch (e) {
-      setApkgMsg({ ok: false, text: (e as Error).message })
+      setApkgMsg({ ok: false, text: friendlyError(e) })
     } finally {
       setApkgBusy(false)
     }
@@ -129,7 +130,7 @@ export function SettingsPage() {
       setS(fresh)
       applyTheme(fresh.theme)
     } catch (e) {
-      setJsonError((e as Error).message)
+      setJsonError(friendlyError(e))
     }
   }
 
@@ -188,7 +189,7 @@ export function SettingsPage() {
       <section className="card section">
         <h2>Importer un CSV</h2>
         <p className="muted small">Séparateur « ; », colonnes <code>recto;verso;tags</code> (tags séparés par des espaces). Un recto contenant <code>{'{{c1::…}}'}</code> devient une carte à trous.</p>
-        <input ref={csvRef} type="file" accept=".csv,.txt,text/csv,text/plain" className="sr-only" tabIndex={-1}
+        <input ref={csvRef} type="file" accept=".csv,.txt,text/csv,text/plain" className="sr-only" tabIndex={-1} aria-label="Fichier CSV à importer"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) void onCsvFile(f); e.target.value = '' }} />
         <button className="btn" onClick={() => csvRef.current?.click()}>Choisir un fichier CSV</button>
         {csv && (
@@ -227,7 +228,7 @@ export function SettingsPage() {
       <section className="card section">
         <h2>Importer un paquet Anki (.apkg)</h2>
         <p className="muted small">Reprend les cartes, tags et images. Les dates de révision d'Anki ne sont pas converties : les cartes arrivent comme nouvelles. Dans Anki, exportez avec « Prise en charge des anciennes versions ».</p>
-        <input ref={apkgRef} type="file" accept=".apkg" className="sr-only" tabIndex={-1}
+        <input ref={apkgRef} type="file" accept=".apkg" className="sr-only" tabIndex={-1} aria-label="Paquet Anki (.apkg) à importer"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) void onApkgFile(f); e.target.value = '' }} />
         <button className="btn" onClick={() => apkgRef.current?.click()} disabled={apkgBusy}>{apkgBusy ? 'Import en cours…' : 'Choisir un fichier .apkg'}</button>
         {apkgMsg && <p className={apkgMsg.ok ? 'pill-ok' : 'pill-err'}>{apkgMsg.text}</p>}
@@ -238,7 +239,7 @@ export function SettingsPage() {
         <p className="muted small">Contient paquets, cartes, historique de révision, images et réglages. À faire régulièrement : vos données ne sont stockées que sur cet appareil.</p>
         <div className="row" style={{ flexWrap: 'wrap' }}>
           <button className="btn primary" onClick={doExport}>Exporter</button>
-          <input ref={jsonRef} type="file" accept=".json,application/json" className="sr-only" tabIndex={-1}
+          <input ref={jsonRef} type="file" accept=".json,application/json" className="sr-only" tabIndex={-1} aria-label="Sauvegarde JSON à restaurer"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) void onJsonFile(f); e.target.value = '' }} />
           <button className="btn" onClick={() => jsonRef.current?.click()}>Importer une sauvegarde…</button>
         </div>

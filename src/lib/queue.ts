@@ -1,3 +1,4 @@
+import Dexie from 'dexie'
 import { db, uid } from '../db'
 import type { Card, Rating, ReviewLog, Settings } from '../types'
 import { descendantIds } from './decks'
@@ -103,22 +104,26 @@ export interface StudyQueue {
  */
 export async function buildQueue(deckId: string | null, settings: Settings, now = Date.now()): Promise<StudyQueue> {
   const decks = await db.decks.toArray()
-  const ids = deckId ? descendantIds(decks, deckId) : decks.map((d) => d.id)
-  const cards = (await db.cards.where('deckId').anyOf(ids).toArray()).filter((c) => !c.suspended)
+  const scope = new Set(deckId ? descendantIds(decks, deckId) : decks.map((d) => d.id))
+  const inScope = (c: Card) => !c.suspended && scope.has(c.deckId)
   const { newLeft, reviewLeft } = limits(settings, await progressToday(now))
   const end = dayEnd(now)
+  const ahead = now + LEARN_AHEAD_MS
+  // Requêtes sur l'index [état+échéance] : on ne lit que les cartes réellement concernées,
+  // même avec des dizaines de milliers de cartes (les nouvelles sont lues dans l'ordre, jusqu'au plafond).
+  const range = (state: number, upTo: number, inclusive: boolean) =>
+    db.cards.where('[state+due]').between([state, Dexie.minKey], [state, upTo], true, inclusive)
 
-  const learn = cards
-    .filter((c) => (c.state === 1 || c.state === 3) && c.due <= now + LEARN_AHEAD_MS)
-    .sort((a, b) => a.due - b.due)
-  const review = cards
-    .filter((c) => c.state === 2 && c.due < end)
-    .sort((a, b) => a.due - b.due)
-    .slice(0, reviewLeft)
-  const fresh = cards
-    .filter((c) => c.state === 0)
-    .sort((a, b) => a.due - b.due || a.ord - b.ord)
-    .slice(0, newLeft)
+  const learn = [...(await range(1, ahead, true).filter(inScope).toArray()), ...(await range(3, ahead, true).filter(inScope).toArray())].sort(
+    (a, b) => a.due - b.due,
+  )
+  const review = (await range(2, end, false).filter(inScope).toArray()).sort((a, b) => a.due - b.due).slice(0, reviewLeft)
+  const fresh =
+    newLeft > 0
+      ? (await db.cards.where('[state+due]').between([0, Dexie.minKey], [0, Dexie.maxKey], true, true).filter(inScope).limit(newLeft).toArray()).sort(
+          (a, b) => a.due - b.due || a.ord - b.ord,
+        )
+      : []
 
   return {
     ids: [...learn, ...review, ...fresh].map((c) => c.id),

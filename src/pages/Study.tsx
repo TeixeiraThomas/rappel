@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Markdown } from '../components/Markdown'
 import { IconBack, IconUndo } from '../components/icons'
 import { toast } from '../components/ui'
+import { friendlyError } from '../lib/errors'
 import { db, getSettings, saveSettings } from '../db'
 import { buildQueue, LEARN_AHEAD_MS, makeReview, saveReview, undoReview, type AppliedReview } from '../lib/queue'
 import { cardFaces } from '../lib/render'
@@ -161,7 +162,7 @@ export function Study({ deckId }: { deckId: string | null }) {
       // Écriture en arrière-plan, dans l'ordre des réponses.
       writes.current = writes.current
         .then(() => saveReview(applied, out))
-        .catch(() => toast("Échec de l'enregistrement de la réponse"))
+        .catch((e) => toast(`Réponse non enregistrée : ${friendlyError(e)}`))
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [card, previews, queue],
@@ -325,7 +326,7 @@ export function Study({ deckId }: { deckId: string | null }) {
         <button className={`btn small${typedMode ? ' primary' : ''}`} onClick={toggleTyped} aria-pressed={typedMode} title="Taper la réponse">Taper</button>
         <button className="btn ghost icon small" onClick={undo} disabled={history.length === 0} aria-label="Annuler la dernière réponse"><IconUndo /></button>
       </div>
-      <div className="progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><div style={{ width: `${progress}%` }} /></div>
+      <div className="progress" role="progressbar" aria-label="Progression de la séance" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><div style={{ width: `${progress}%` }} /></div>
 
       <div
         className="study-card-wrap"
@@ -337,6 +338,7 @@ export function Study({ deckId }: { deckId: string | null }) {
         <span className="swipe-hint l" style={{ opacity: dx < -30 ? Math.min(1, -dx / SWIPE_THRESHOLD) : 0 }}>À revoir</span>
         <span className="swipe-hint r" style={{ opacity: dx > 30 ? Math.min(1, dx / SWIPE_THRESHOLD) : 0 }}>Bien</span>
         <div
+          key={`${card.id}-${card.reps}-${card.lapses}`}
           className={`study-card${dx ? ' dragging' : ''}`}
           style={cardStyle}
           onClick={() => { if (!revealed && !typedMode && !swiped.current) reveal() }}

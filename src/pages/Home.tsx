@@ -108,6 +108,9 @@ export function Home() {
 
   if (!decks) return null
 
+  // Rien à étudier : aucun compteur n'est non nul (les racines incluent déjà leurs sous-paquets).
+  const nothingDue = !!counts && decks.length > 0 && [...counts.values()].every((c) => c.new + c.learn + c.review === 0)
+
   return (
     <>
       <div className="page-head">
@@ -140,12 +143,12 @@ export function Home() {
                   </button>
                   <button className="deck-main" onClick={() => navigate(`/study/${node.deck.id}`)} aria-label={`Étudier ${node.path}`}>
                     <span className="deck-name">{node.deck.name}</span>
-                    <span className="deck-counts" aria-label="Nouvelles, à apprendre, à revoir">
-                      <span className={`badge new${c?.new ? '' : ' zero'}`}>{c?.new ?? 0}</span>
-                      <span className={`badge learn${c?.learn ? '' : ' zero'}`}>{c?.learn ?? 0}</span>
-                      <span className={`badge due${c?.review ? '' : ' zero'}`}>{c?.review ?? 0}</span>
-                    </span>
                   </button>
+                  <span className="deck-counts" role="group" aria-label={`À étudier : ${c?.new ?? 0} nouvelles, ${c?.learn ?? 0} en apprentissage, ${c?.review ?? 0} à revoir`}>
+                    <span className={`badge new${c?.new ? '' : ' zero'}`} aria-hidden="true">{c?.new ?? 0}</span>
+                    <span className={`badge learn${c?.learn ? '' : ' zero'}`} aria-hidden="true">{c?.learn ?? 0}</span>
+                    <span className={`badge due${c?.review ? '' : ' zero'}`} aria-hidden="true">{c?.review ?? 0}</span>
+                  </span>
                   <button className="btn ghost icon small" onClick={() => menu(node)} aria-label={`Options de ${node.deck.name}`}><IconMore /></button>
                 </div>
               )
@@ -155,8 +158,15 @@ export function Home() {
             <span style={{ color: 'var(--new)' }}>● nouvelles</span> · <span style={{ color: 'var(--learn)' }}>● en apprentissage</span> ·{' '}
             <span style={{ color: 'var(--due)' }}>● à revoir</span>
           </p>
+          {nothingDue && (
+            <p className="anim-in" style={{ textAlign: 'center', margin: '16px 0 4px' }} role="status">
+              <strong>Rien à étudier pour le moment 🎉</strong>
+              <br />
+              <span className="muted small">Revenez plus tard, ou ajoutez de nouvelles cartes.</span>
+            </p>
+          )}
           <div className="row" style={{ justifyContent: 'center', marginTop: 12 }}>
-            <button className="btn primary" onClick={() => navigate('/study/all')}>Tout étudier</button>
+            <button className={`btn${nothingDue ? '' : ' primary'}`} onClick={() => navigate('/study/all')}>Tout étudier</button>
           </div>
           <a className="fab" href={href('/new')} aria-label="Ajouter une carte"><IconPlus /></a>
         </>
