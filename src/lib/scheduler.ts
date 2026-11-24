@@ -14,7 +14,14 @@ export interface Outcome {
 
 export type Previews = Record<Rating, Outcome>
 
-export function makeScheduler(s: Pick<Settings, 'retention' | 'maxInterval'>) {
+export type Scheduler = ReturnType<typeof makeScheduler>
+
+/** Prépare le planificateur (asynchrone : prêt pour l'API actuelle de ts-fsrs). */
+export async function prepareScheduler(s: Pick<Settings, 'retention' | 'maxInterval'>): Promise<Scheduler> {
+  return makeScheduler(s)
+}
+
+function makeScheduler(s: Pick<Settings, 'retention' | 'maxInterval'>) {
   return fsrs(
     generatorParameters({
       request_retention: s.retention,
@@ -69,8 +76,7 @@ export function formatDelay(ms: number): string {
 }
 
 /** Calcule d'un coup le résultat des 4 réponses possibles (affichage + application cohérents). */
-export function previewAll(card: Card, now: number, settings: Pick<Settings, 'retention' | 'maxInterval'>): Previews {
-  const f = makeScheduler(settings)
+export function previewAll(card: Card, now: number, f: Scheduler): Previews {
   const rec = f.repeat(toFsrs(card, now), new Date(now))
   const out = {} as Previews
   for (const r of [1, 2, 3, 4] as Rating[]) {

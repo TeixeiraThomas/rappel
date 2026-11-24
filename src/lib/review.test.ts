@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS, type Settings } from '../types'
 import { createDeck } from './decks'
 import { createNote } from './notes'
 import { applyReview, buildQueue, dayEnd, dayStart, deckCounts, undoReview } from './queue'
-import { formatDelay, previewAll } from './scheduler'
+import { formatDelay, prepareScheduler, previewAll } from './scheduler'
 import { compareAnswer, levenshtein } from './typed'
 
 async function reset() {
@@ -19,7 +19,7 @@ describe('planification FSRS', () => {
     await createNote({ deckId: d.id, type: 'basic', front: 'q', back: 'r', tags: [] })
     const card = (await db.cards.toArray())[0]
     const now = Date.now()
-    const p = previewAll(card, now, DEFAULT_SETTINGS)
+    const p = previewAll(card, now, await prepareScheduler(DEFAULT_SETTINGS))
     expect(p[1].delayMs).toBeLessThanOrEqual(p[2].delayMs)
     expect(p[2].delayMs).toBeLessThanOrEqual(p[3].delayMs)
     expect(p[3].delayMs).toBeLessThan(p[4].delayMs)
@@ -34,10 +34,10 @@ describe('planification FSRS', () => {
     await createNote({ deckId: d.id, type: 'basic', front: 'q', back: 'r', tags: [] })
     let card = (await db.cards.toArray())[0]
     let now = Date.now()
-    card = previewAll(card, now, DEFAULT_SETTINGS)[4].card // Facile -> révision
+    card = previewAll(card, now, await prepareScheduler(DEFAULT_SETTINGS))[4].card // Facile -> révision
     const first = card.scheduledDays
     now = card.due
-    const next = previewAll(card, now, DEFAULT_SETTINGS)[3].card
+    const next = previewAll(card, now, await prepareScheduler(DEFAULT_SETTINGS))[3].card
     expect(next.scheduledDays).toBeGreaterThan(first)
     expect(next.reps).toBe(2)
   })
@@ -47,9 +47,9 @@ describe('planification FSRS', () => {
     await createNote({ deckId: d.id, type: 'basic', front: 'q', back: 'r', tags: [] })
     let card = (await db.cards.toArray())[0]
     let now = Date.now()
-    card = previewAll(card, now, DEFAULT_SETTINGS)[4].card
+    card = previewAll(card, now, await prepareScheduler(DEFAULT_SETTINGS))[4].card
     now = card.due
-    const lapsed = previewAll(card, now, DEFAULT_SETTINGS)[1].card
+    const lapsed = previewAll(card, now, await prepareScheduler(DEFAULT_SETTINGS))[1].card
     expect(lapsed.lapses).toBe(1)
     expect(lapsed.state).toBe(3)
   })
@@ -87,7 +87,7 @@ describe("file d'étude et limites", () => {
     for (let i = 0; i < 4; i++) {
       // on prend une carte neuve (les cartes en apprentissage passent en tête de file)
       const card = (await db.cards.where('state').equals(0).first())!
-      const out = previewAll(card, Date.now(), s)[3]
+      const out = previewAll(card, Date.now(), await prepareScheduler(s))[3]
       await applyReview(card, 3, out, 1000)
     }
     // 4 faites sur 10 : il reste 6 nouvelles, plus d'éventuelles cartes en apprentissage.
@@ -126,7 +126,7 @@ describe("file d'étude et limites", () => {
     const d = await seed(1)
     const s = await getSettings()
     const card = (await db.cards.toArray())[0]
-    const out = previewAll(card, Date.now(), s)[3]
+    const out = previewAll(card, Date.now(), await prepareScheduler(s))[3]
     const applied = await applyReview(card, 3, out, 500)
     expect((await db.cards.get(card.id))!.state).not.toBe(0)
     expect(await db.reviews.count()).toBe(1)

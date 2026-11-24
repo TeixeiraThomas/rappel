@@ -4,7 +4,7 @@ import { IconBack, IconUndo } from '../components/icons'
 import { db, getSettings, saveSettings } from '../db'
 import { applyReview, buildQueue, LEARN_AHEAD_MS, undoReview, type AppliedReview } from '../lib/queue'
 import { cardFaces } from '../lib/render'
-import { previewAll } from '../lib/scheduler'
+import { prepareScheduler, previewAll, type Scheduler } from '../lib/scheduler'
 import { compareAnswer, type Part } from '../lib/typed'
 import type { Card, Note, Rating, Settings } from '../types'
 import { navigate } from '../router'
@@ -35,6 +35,7 @@ export function Study({ deckId }: { deckId: string | null }) {
   const [phase, setPhase] = useState<'loading' | 'study' | 'done'>('loading')
   const [queue, setQueue] = useState<string[]>([])
   const [settings, setSettings] = useState<Settings | null>(null)
+  const [scheduler, setScheduler] = useState<Scheduler | null>(null)
   const [deckName, setDeckName] = useState('Tous les paquets')
   const [revealed, setRevealed] = useState(false)
   const [typed, setTyped] = useState('')
@@ -61,6 +62,7 @@ export function Study({ deckId }: { deckId: string | null }) {
     let alive = true
     ;(async () => {
       const s = await getSettings()
+      const sched = await prepareScheduler(s)
       const q = await buildQueue(deckId, s)
       const cs = (await db.cards.bulkGet(q.ids)).filter((c): c is Card => !!c)
       const ns = (await db.notes.bulkGet([...new Set(cs.map((c) => c.noteId))])).filter((n): n is Note => !!n)
@@ -70,6 +72,7 @@ export function Study({ deckId }: { deckId: string | null }) {
       ns.forEach((n) => notes.current.set(n.id, n))
       const ids = q.ids.filter((id) => notes.current.has(cards.current.get(id)!.noteId))
       setSettings(s)
+      setScheduler(sched)
       setTypedMode(s.typedAnswer)
       setQueue(ids)
       setTotal(ids.length)
@@ -107,7 +110,7 @@ export function Study({ deckId }: { deckId: string | null }) {
   }, [waitUntil])
 
   // Intervalles calculés une seule fois par carte affichée : ce qui est montré = ce qui est appliqué.
-  const previews = useMemo(() => (card && settings ? previewAll(card, Date.now(), settings) : null), [card, settings, waitUntil])
+  const previews = useMemo(() => (card && scheduler ? previewAll(card, Date.now(), scheduler) : null), [card, scheduler, waitUntil])
   const comparison = useMemo(() => (revealed && typedMode && faces ? compareAnswer(typed, faces.expected) : null), [revealed, typedMode, faces, typed])
 
   const counts = useMemo(() => {
