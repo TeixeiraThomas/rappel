@@ -40,3 +40,22 @@ Décisions prises en autonomie pendant la session (aucune question posée, comme
 25. **Import .apkg** : lecture de `collection.anki21` / `collection.anki2` via `sql.js` (WASM chargé à la demande) et `jszip`. Reprend contenu, tags, paquets hiérarchiques (`A::B`), images ; types de notes déduits (standard, « et inversé » si 2 modèles de carte présents, texte à trous). **Planification non convertie** : les cartes arrivent comme nouvelles. Le format compressé récent (`.anki21b`, zstd + protobuf) n'est pas lu : message demandant de ré-exporter en mode compatibilité.
 26. **Tests** : Vitest en environnement Node avec `fake-indexeddb`, config séparée (`vitest.config.ts`) sans plugins Vite PWA/React. La logique est dans `src/lib` pour être testable sans navigateur ; l'UI a été vérifiée manuellement dans un navigateur (voir RAPPORT.md).
 27. **Thème** : sombre par défaut ; clair et « système » disponibles dans les Réglages.
+
+---
+
+# Session 2 — fiabilisation
+
+## Bugs connus (RAPPORT session 1)
+
+28. **Dernière carte en apprentissage** : quand il ne reste que des cartes en (ré)apprentissage pas encore dues, la séance affiche un écran « Prochaine carte dans mm:ss » (compte à rebours) avec « Continuer maintenant » et « Terminer ». Si d'autres cartes sont encore à faire, les cartes en apprentissage proches (≤ 20 min) restent réinsérées dans la séance comme avant.
+29. **Taille du bundle** : écrans secondaires (Parcourir, Éditeur, Stats, Réglages) chargés à la demande ; JSZip et sql.js (WASM) chargés uniquement à l'import `.apkg`. Le bundle principal passe de ≈ 590 ko à ≈ 354 ko (≈ 114 ko gzip). Tout reste précaché par le service worker : aucun impact hors ligne.
+30. **Casse du chemin sous Windows** : `npm test` passe par `scripts/run-tool.mjs`, qui se replace dans le chemin réel (`C:\…`) avant de lancer Vitest/Playwright. Plus d'échec selon la casse du terminal.
+31. **Journaux de révision orphelins** après suppression d'une carte : **comportement voulu**, pas un bug. L'historique sert aux statistiques (série, réussite, calendrier) ; supprimer une carte ne doit pas effacer le passé de l'utilisateur.
+32. **Limites quotidiennes globales** : conservées (choix de produit, pas un bug). **`::` dans une réponse à trous** : comportement identique à Anki, conservé pour la compatibilité des imports. **`.anki21b`** : toujours non supporté (nécessiterait zstd + protobuf) ; message d'erreur explicite.
+
+## Migration de ts-fsrs
+
+33. `fsrs().repeat()` (dépréciée) remplacée par `DefaultScheduler({ version: 'FSRS-6', … }).preview()`. **Version FSRS-6 imposée** : le défaut de la nouvelle API est FSRS-7, ce qui aurait changé tous les intervalles.
+34. **Méthode** : tests de non-régression écrits AVANT la migration (`scheduler.regression.test.ts`, instantanés de 5 parcours de révision complets, 4 boutons à chaque étape, fuzz désactivé car aléatoire). Résultat de la migration : **tout est identique à l'ancienne API, sauf un cas extrême** — carte très difficile en réapprentissage (stabilité < 1 jour) : « Facile » donne 2 j au lieu de 1 j, alors que « Bien » donne déjà 1 j. L'ancienne API produisait un « Facile » égal à « Bien » ; la nouvelle impose Facile > Bien. Écart accepté (plus cohérent), instantané mis à jour.
+35. **Fuzz** : avec la nouvelle API il dépend de l'identifiant de carte ; on passe l'identifiant stable de notre carte pour qu'il soit reproductible par carte. Test de bornes (±15 % ou ±2 j) pour le fuzz.
+36. L'API est asynchrone (`prepareScheduler`) : le planificateur est créé une fois au chargement de la séance ; `previewAll(card, now, scheduler)` reste synchrone.

@@ -573,7 +573,7 @@ exports[`FSRS : non-régression > parcours avec oubli et réapprentissage 1`] = 
       "10 min",
       "15 min",
       "1 j",
-      "1 j",
+      "2 j",
     ],
     "previews": {
       "1": {
@@ -607,9 +607,9 @@ exports[`FSRS : non-régression > parcours avec oubli et réapprentissage 1`] = 
         "step": 0,
       },
       "4": {
-        "days": 1,
+        "days": 2,
         "diff": 9.618,
-        "dueInMin": 1440,
+        "dueInMin": 2880,
         "lapses": 2,
         "reps": 11,
         "stab": 1.346,

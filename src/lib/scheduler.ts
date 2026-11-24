@@ -1,6 +1,7 @@
-// Enveloppe fine autour de ts-fsrs : convertit nos cartes (dates en ms) vers le format
-// de la bibliothèque et inversement, et calcule les intervalles affichés sur les boutons.
-import { createEmptyCard, fsrs, generatorParameters, type Card as FCard, type Grade } from 'ts-fsrs'
+// Enveloppe fine autour de ts-fsrs (API actuelle « DefaultScheduler ») : convertit nos cartes
+// (dates en ms) vers le format de la bibliothèque et inversement, et calcule les intervalles
+// affichés sur les boutons.
+import { DefaultScheduler } from 'ts-fsrs'
 import type { Card, CardState, Rating, Settings } from '../types'
 
 export interface Outcome {
@@ -12,54 +13,60 @@ export interface Outcome {
   label: string
 }
 
-type SchedulerParams = SchedulerParams & { fuzz?: boolean }
-
 export type Previews = Record<Rating, Outcome>
 
-export type Scheduler = ReturnType<typeof makeScheduler>
+/** `fuzz` : légère variation aléatoire des intervalles longs (activée par défaut ; désactivée dans les tests déterministes). */
+type SchedulerParams = Pick<Settings, 'retention' | 'maxInterval'> & { fuzz?: boolean }
+export type Scheduler = Awaited<ReturnType<typeof createScheduler>>
 
-/** Prépare le planificateur (asynchrone : prêt pour l'API actuelle de ts-fsrs). */
+// FSRS-6 : même modèle que l'ancienne API fsrs() (comportement inchangé). Le défaut de la
+// bibliothèque est désormais FSRS-7, volontairement non adopté ici pour ne pas changer les intervalles.
+function createScheduler(s: SchedulerParams) {
+  return DefaultScheduler({
+    version: 'FSRS-6',
+    desiredRetention: s.retention,
+    maximumInterval: s.maxInterval,
+    enableFuzz: s.fuzz ?? true,
+  })
+}
+
+/** Prépare le planificateur (asynchrone, à faire une fois avant la séance). */
 export async function prepareScheduler(s: SchedulerParams): Promise<Scheduler> {
-  return makeScheduler(s)
+  return createScheduler(s)
 }
 
-function makeScheduler(s: SchedulerParams) {
-  return fsrs(
-    generatorParameters({
-      request_retention: s.retention,
-      maximum_interval: s.maxInterval,
-      enable_fuzz: s.fuzz ?? true,
-    }),
-  )
-}
+// Le réapprentissage (état 3) est un statut « learning » côté bibliothèque.
+const STATUS = ['new', 'learning', 'review', 'learning'] as const
 
-function toFsrs(c: Card, now: number): FCard {
-  if (c.state === 0) return createEmptyCard(new Date(now))
+function toFsrs(f: Scheduler, c: Card, now: number) {
+  if (c.state === 0) return f.newCard({ now: new Date(now), cardId: c.id })
   return {
-    due: new Date(c.due),
     stability: c.stability,
     difficulty: c.difficulty,
-    scheduled_days: c.scheduledDays,
-    learning_steps: c.learningSteps,
+    state: c.state,
+    scheduleStatus: STATUS[c.state],
+    dueAt: new Date(c.due),
+    lastReviewAt: c.lastReview ? new Date(c.lastReview) : null,
+    cardId: c.id,
     reps: c.reps,
     lapses: c.lapses,
-    state: c.state,
-    last_review: c.lastReview ? new Date(c.lastReview) : undefined,
-  } as FCard
+    scheduledDays: c.scheduledDays,
+    learningStep: c.learningSteps,
+  }
 }
 
-function fromFsrs(base: Card, f: FCard): Card {
+function fromFsrs(base: Card, f: ReturnType<typeof toFsrs>): Card {
   return {
     ...base,
-    due: f.due.getTime(),
+    due: f.dueAt.getTime(),
     stability: f.stability,
     difficulty: f.difficulty,
-    scheduledDays: f.scheduled_days,
-    learningSteps: f.learning_steps,
+    scheduledDays: f.scheduledDays,
+    learningSteps: f.learningStep,
     reps: f.reps,
     lapses: f.lapses,
     state: f.state as CardState,
-    lastReview: f.last_review ? f.last_review.getTime() : null,
+    lastReview: f.lastReviewAt ? f.lastReviewAt.getTime() : null,
   }
 }
 
@@ -79,11 +86,11 @@ export function formatDelay(ms: number): string {
 
 /** Calcule d'un coup le résultat des 4 réponses possibles (affichage + application cohérents). */
 export function previewAll(card: Card, now: number, f: Scheduler): Previews {
-  const rec = f.repeat(toFsrs(card, now), new Date(now))
+  const date = new Date(now)
   const out = {} as Previews
-  for (const r of [1, 2, 3, 4] as Rating[]) {
-    const item = rec[r as Grade]
-    const next = fromFsrs(card, item.card)
+  for (const item of f.preview({ card: toFsrs(f, card, now), now: date })) {
+    const r = item.grade as Rating
+    const next = fromFsrs(card, item.card as ReturnType<typeof toFsrs>)
     const delayMs = Math.max(0, next.due - now)
     out[r] = { card: next, delayMs, label: formatDelay(delayMs) }
   }
