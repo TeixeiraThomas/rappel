@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Markdown } from '../components/Markdown'
 import { IconBack, IconUndo } from '../components/icons'
+import { toast } from '../components/ui'
 import { db, getSettings, saveSettings } from '../db'
-import { applyReview, buildQueue, LEARN_AHEAD_MS, undoReview, type AppliedReview } from '../lib/queue'
+import { buildQueue, LEARN_AHEAD_MS, makeReview, saveReview, undoReview, type AppliedReview } from '../lib/queue'
 import { cardFaces } from '../lib/render'
 import { prepareScheduler, previewAll, type Scheduler } from '../lib/scheduler'
 import { compareAnswer, type Part } from '../lib/typed'
@@ -53,6 +54,8 @@ export function Study({ deckId }: { deckId: string | null }) {
   const notes = useRef(new Map<string, Note>())
   const shownAt = useRef(Date.now())
   const busy = useRef(false)
+  // File d'écritures en base : l'interface avance tout de suite, les écritures restent ordonnées.
+  const writes = useRef<Promise<void>>(Promise.resolve())
   const drag = useRef<{ x: number; y: number; active: boolean } | null>(null)
   const swiped = useRef(false)
   const typedRef = useRef<HTMLTextAreaElement>(null)
@@ -142,24 +145,23 @@ export function Study({ deckId }: { deckId: string | null }) {
   }
 
   const rate = useCallback(
-    async (r: Rating) => {
+    (r: Rating) => {
       if (!card || !previews || busy.current) return
-      busy.current = true
-      try {
-        const out = previews[r]
-        const applied = await applyReview(card, r, out, Date.now() - shownAt.current)
-        cards.current.set(card.id, out.card)
-        const rest = queue.slice(1)
-        // Carte en (ré)apprentissage proche : on la représente plus tard dans la séance.
-        const soon = (out.card.state === 1 || out.card.state === 3) && out.card.due <= Date.now() + LEARN_AHEAD_MS
-        if (soon) rest.splice(Math.min(rest.length, out.delayMs < 120_000 ? 2 : 5), 0, card.id)
-        setHistory((h) => [...h, { applied, queueBefore: queue }])
-        setTally((t) => ({ ...t, [r]: t[r] + 1 }))
-        next(rest)
-        setTick((t) => t + 1)
-      } finally {
-        busy.current = false
-      }
+      const out = previews[r]
+      const applied = makeReview(card, r, out, Date.now() - shownAt.current)
+      cards.current.set(card.id, out.card)
+      const rest = queue.slice(1)
+      // Carte en (ré)apprentissage proche : on la représente plus tard dans la séance.
+      const soon = (out.card.state === 1 || out.card.state === 3) && out.card.due <= Date.now() + LEARN_AHEAD_MS
+      if (soon) rest.splice(Math.min(rest.length, out.delayMs < 120_000 ? 2 : 5), 0, card.id)
+      setHistory((h) => [...h, { applied, queueBefore: queue }])
+      setTally((t) => ({ ...t, [r]: t[r] + 1 }))
+      next(rest)
+      setTick((t) => t + 1)
+      // Écriture en arrière-plan, dans l'ordre des réponses.
+      writes.current = writes.current
+        .then(() => saveReview(applied, out))
+        .catch(() => toast("Échec de l'enregistrement de la réponse"))
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [card, previews, queue],
@@ -170,6 +172,7 @@ export function Study({ deckId }: { deckId: string | null }) {
     if (!last || busy.current) return
     busy.current = true
     try {
+      await writes.current // l'écriture de cette réponse doit être terminée avant de l'annuler
       await undoReview(last.applied)
       cards.current.set(last.applied.before.id, last.applied.before)
       setHistory((h) => h.slice(0, -1))

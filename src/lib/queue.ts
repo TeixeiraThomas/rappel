@@ -131,14 +131,8 @@ export interface AppliedReview {
   log: ReviewLog
 }
 
-/** Enregistre une réponse : met à jour la carte et ajoute une entrée à l'historique. */
-export async function applyReview(
-  before: Card,
-  rating: Rating,
-  outcome: Outcome,
-  durationMs: number,
-  now = Date.now(),
-): Promise<AppliedReview> {
+/** Construit (sans écrire) l'entrée d'historique d'une réponse : synchrone, pour une interface réactive. */
+export function makeReview(before: Card, rating: Rating, outcome: Outcome, durationMs: number, now = Date.now()): AppliedReview {
   const log: ReviewLog = {
     id: uid(),
     cardId: before.id,
@@ -149,11 +143,28 @@ export async function applyReview(
     scheduledDays: outcome.card.scheduledDays,
     durationMs: Math.round(durationMs),
   }
+  return { before, log }
+}
+
+/** Écrit la carte mise à jour et l'entrée d'historique (une seule transaction). */
+export async function saveReview(applied: AppliedReview, outcome: Outcome): Promise<void> {
   await db.transaction('rw', db.cards, db.reviews, async () => {
     await db.cards.put(outcome.card)
-    await db.reviews.add(log)
+    await db.reviews.add(applied.log)
   })
-  return { before, log }
+}
+
+/** Enregistre une réponse : met à jour la carte et ajoute une entrée à l'historique. */
+export async function applyReview(
+  before: Card,
+  rating: Rating,
+  outcome: Outcome,
+  durationMs: number,
+  now = Date.now(),
+): Promise<AppliedReview> {
+  const applied = makeReview(before, rating, outcome, durationMs, now)
+  await saveReview(applied, outcome)
+  return applied
 }
 
 /** Annule la dernière réponse : restaure la carte et supprime l'entrée d'historique. */

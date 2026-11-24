@@ -6,3 +6,6 @@ dev-dist
 coverage
 .claude
 .playwright-mcp
+dist-gh
+test-results
+playwright-report
