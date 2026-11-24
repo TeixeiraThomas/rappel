@@ -1,0 +1,56 @@
+- generic [ref=e3]:
+  - navigation "Navigation principale" [ref=e4]:
+    - link "Paquets" [ref=e6] [cursor=pointer]:
+      - /url: "#/"
+    - link "Parcourir" [ref=e10] [cursor=pointer]:
+      - /url: "#/browse"
+    - link "Stats" [ref=e14] [cursor=pointer]:
+      - /url: "#/stats"
+    - link "Réglages" [ref=e17] [cursor=pointer]:
+      - /url: "#/settings"
+  - main [ref=e21]:
+    - generic [ref=e61]:
+      - button "Retour" [ref=e62] [cursor=pointer]
+      - heading "Nouvelle carte" [level=1] [ref=e65]
+    - button "Choose File" [ref=e66]
+    - generic [ref=e67]:
+      - generic [ref=e68]: Paquet
+      - combobox "Paquet" [ref=e69]:
+        - option "Réseau" [selected]
+    - generic [ref=e70]:
+      - generic [ref=e71]: Type de carte
+      - tablist [ref=e72]:
+        - tab "Recto / verso" [selected] [ref=e73] [cursor=pointer]
+        - tab "+ inverse" [ref=e74] [cursor=pointer]
+        - tab "Texte à trous" [ref=e75] [cursor=pointer]
+    - generic [ref=e76]:
+      - generic [ref=e77]: Recto
+      - toolbar "Mise en forme" [ref=e78]:
+        - button "Gras" [ref=e79] [cursor=pointer]: G
+        - button "Italique" [ref=e80] [cursor=pointer]: I
+        - button "Code en ligne" [ref=e81] [cursor=pointer]: </>
+        - button "Bloc de code" [ref=e82] [cursor=pointer]: Bloc
+        - button "Liste" [ref=e83] [cursor=pointer]
+        - button "Image" [ref=e84] [cursor=pointer]
+      - textbox "Recto" [ref=e85]:
+        - /placeholder: Quelle commande affiche la table de routage ?
+    - generic [ref=e86]:
+      - generic [ref=e87]: Verso
+      - toolbar "Mise en forme" [ref=e88]:
+        - button "Gras" [ref=e89] [cursor=pointer]: G
+        - button "Italique" [ref=e90] [cursor=pointer]: I
+        - button "Code en ligne" [ref=e91] [cursor=pointer]: </>
+        - button "Bloc de code" [ref=e92] [cursor=pointer]: Bloc
+        - button "Liste" [ref=e93] [cursor=pointer]
+        - button "Image" [ref=e94] [cursor=pointer]
+      - textbox "Verso" [ref=e95]:
+        - /placeholder: "```\nshow ip route\n```"
+    - generic [ref=e96]:
+      - generic [ref=e97]: Tags (séparés par des espaces)
+      - combobox "Tags (séparés par des espaces)" [ref=e98]
+    - generic [ref=e99]:
+      - button "Aperçu" [ref=e100] [cursor=pointer]
+      - generic [ref=e101]: Le recto est vide.
+    - generic [ref=e102]:
+      - button "Enregistrer" [disabled] [ref=e103]
+      - button "Enregistrer et ajouter une autre" [disabled] [ref=e104]

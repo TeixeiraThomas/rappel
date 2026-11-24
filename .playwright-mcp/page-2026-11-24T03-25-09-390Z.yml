@@ -1,0 +1,26 @@
+- generic [ref=e3]:
+  - navigation "Navigation principale" [ref=e4]:
+    - link "Paquets" [ref=e6] [cursor=pointer]:
+      - /url: "#/"
+    - link "Parcourir" [ref=e10] [cursor=pointer]:
+      - /url: "#/browse"
+    - link "Stats" [ref=e14] [cursor=pointer]:
+      - /url: "#/stats"
+    - link "Réglages" [ref=e17] [cursor=pointer]:
+      - /url: "#/settings"
+  - main [ref=e21]:
+    - generic [ref=e22]:
+      - heading "Paquets" [level=1] [ref=e23]
+      - button "Paquet" [ref=e24] [cursor=pointer]
+    - generic [ref=e27]:
+      - heading "Bienvenue dans Rappel" [level=2] [ref=e28]
+      - paragraph [ref=e29]: Créez votre premier paquet pour commencer à ajouter des cartes, ou importez un fichier CSV / une sauvegarde dans les Réglages.
+      - button "Créer un paquet" [ref=e30] [cursor=pointer]
+  - dialog "Nouveau paquet" [ref=e34]:
+    - heading "Nouveau paquet" [level=2] [ref=e35]
+    - generic [ref=e36]:
+      - generic [ref=e37]: Nom
+      - textbox [active] [ref=e38]
+      - generic [ref=e39]:
+        - button "Annuler" [ref=e40] [cursor=pointer]
+        - button "Créer" [disabled] [ref=e41]
