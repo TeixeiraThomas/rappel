@@ -12,21 +12,23 @@ export interface Outcome {
   label: string
 }
 
+type SchedulerParams = SchedulerParams & { fuzz?: boolean }
+
 export type Previews = Record<Rating, Outcome>
 
 export type Scheduler = ReturnType<typeof makeScheduler>
 
 /** Prépare le planificateur (asynchrone : prêt pour l'API actuelle de ts-fsrs). */
-export async function prepareScheduler(s: Pick<Settings, 'retention' | 'maxInterval'>): Promise<Scheduler> {
+export async function prepareScheduler(s: SchedulerParams): Promise<Scheduler> {
   return makeScheduler(s)
 }
 
-function makeScheduler(s: Pick<Settings, 'retention' | 'maxInterval'>) {
+function makeScheduler(s: SchedulerParams) {
   return fsrs(
     generatorParameters({
       request_retention: s.retention,
       maximum_interval: s.maxInterval,
-      enable_fuzz: true,
+      enable_fuzz: s.fuzz ?? true,
     }),
   )
 }

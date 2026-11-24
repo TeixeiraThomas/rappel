@@ -1,6 +1,7 @@
 // Tests de non-régression de la planification : les valeurs de référence (instantané) ont été
 // enregistrées avec l'ancienne API fsrs().repeat() ; elles doivent rester identiques après toute
-// migration de la bibliothèque. Date fixe + fuzz déterministe → résultats reproductibles.
+// migration de la bibliothèque. Date fixe et fuzz désactivé (le fuzz est aléatoire par nature) →
+// résultats reproductibles. Le fuzz est vérifié à part, par bornes.
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_SETTINGS, type Card, type Rating } from '../types'
 import { previewAll, prepareScheduler } from './scheduler'
@@ -25,8 +26,8 @@ const view = (c: Card, now: number) => ({
 })
 
 /** Rejoue une séquence de notes, chaque révision ayant lieu à l'échéance de la carte. */
-async function replay(ratings: Rating[], settings = DEFAULT_SETTINGS) {
-  const sched = await prepareScheduler(settings)
+async function replay(ratings: Rating[], settings = DEFAULT_SETTINGS, fuzz = false) {
+  const sched = await prepareScheduler({ ...settings, fuzz })
   let card = fresh()
   let now = T0
   const steps = []
@@ -62,6 +63,18 @@ describe('FSRS : non-régression', () => {
 
   it('rétention 80 % et intervalle maximum de 30 jours', async () => {
     expect(await replay([3, 3, 4, 4, 4, 4], { ...DEFAULT_SETTINGS, retention: 0.8, maxInterval: 30 })).toMatchSnapshot()
+  })
+
+  it('avec fuzz, les intervalles restent proches de ceux sans fuzz (±15 % ou ±2 j)', async () => {
+    const exact = await replay([3, 3, 3, 3, 3, 3], DEFAULT_SETTINGS, false)
+    const fuzzy = await replay([3, 3, 3, 3, 3, 3], DEFAULT_SETTINGS, true)
+    // Première révision : pas de fuzz en dessous de 2,5 jours -> identique.
+    expect(fuzzy[0].previews[3]).toEqual(exact[0].previews[3])
+    for (const r of [1, 2, 3, 4] as Rating[]) {
+      const a = exact[0].previews[r].days
+      const b = fuzzy[0].previews[r].days
+      expect(Math.abs(a - b)).toBeLessThanOrEqual(Math.max(2, a * 0.15))
+    }
   })
 
   it('aperçu cohérent : appliquer une note donne exactement la carte prévue', async () => {
