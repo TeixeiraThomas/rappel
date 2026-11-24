@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { applyTheme } from '../lib/theme'
 import { askConfirm, toast } from '../components/ui'
 import { db, getSettings, saveSettings } from '../db'
+import { importApkg, loadSqlJs } from '../lib/apkg'
 import { exportBackup, restoreBackup, validateBackup, type Backup } from '../lib/backup'
 import { csvToCards, detectDelimiter, importCards, parseCsv, type CsvParsed } from '../lib/csv'
 import { buildTree, createDeck, flattenTree } from '../lib/decks'
@@ -67,6 +68,26 @@ export function SettingsPage() {
     const r = await importCards(csv.parsed.cards, deckId, skipDup)
     toast(`${r.added} carte${r.added > 1 ? 's' : ''} importée${r.added > 1 ? 's' : ''}${r.duplicates ? `, ${r.duplicates} doublon(s) ignoré(s)` : ''}`)
     setCsv(null)
+  }
+
+  // --- Import Anki (.apkg) ---
+  const apkgRef = useRef<HTMLInputElement>(null)
+  const [apkgBusy, setApkgBusy] = useState(false)
+  const [apkgMsg, setApkgMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  const onApkgFile = async (file: File) => {
+    setApkgBusy(true)
+    setApkgMsg(null)
+    try {
+      const SQL = await loadSqlJs()
+      const r = await importApkg(await file.arrayBuffer(), SQL, file.name.replace(/\.[^.]+$/, '') || 'Import Anki')
+      const ignored = r.skipped ? `, ${r.skipped} ignorée(s)` : ''
+      setApkgMsg({ ok: true, text: `${r.notes} notes (${r.cards} cartes) et ${r.images} image(s) importées${ignored}.` })
+    } catch (e) {
+      setApkgMsg({ ok: false, text: (e as Error).message })
+    } finally {
+      setApkgBusy(false)
+    }
   }
 
   // --- Sauvegarde JSON ---
@@ -205,6 +226,15 @@ export function SettingsPage() {
             </div>
           </div>
         )}
+      </section>
+
+      <section className="card section">
+        <h2>Importer un paquet Anki (.apkg)</h2>
+        <p className="muted small">Reprend les cartes, tags et images. Les dates de révision d'Anki ne sont pas converties : les cartes arrivent comme nouvelles. Dans Anki, exportez avec « Prise en charge des anciennes versions ».</p>
+        <input ref={apkgRef} type="file" accept=".apkg" className="sr-only" tabIndex={-1}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void onApkgFile(f); e.target.value = '' }} />
+        <button className="btn" onClick={() => apkgRef.current?.click()} disabled={apkgBusy}>{apkgBusy ? 'Import en cours…' : 'Choisir un fichier .apkg'}</button>
+        {apkgMsg && <p className={apkgMsg.ok ? 'pill-ok' : 'pill-err'}>{apkgMsg.text}</p>}
       </section>
 
       <section className="card section">

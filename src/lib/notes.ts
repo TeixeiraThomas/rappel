@@ -55,10 +55,10 @@ export interface NoteInput {
   tags: string[] | string
 }
 
-export async function createNote(input: NoteInput): Promise<Note> {
+/** Construit une note et ses cartes (sans écrire en base) ; lève une erreur si le contenu est invalide. */
+export function makeNote(input: NoteInput, now = Date.now()): { note: Note; cards: Card[] } {
   const err = validateNote(input.type, input.front, input.back)
   if (err) throw new Error(err)
-  const now = Date.now()
   const note: Note = {
     id: uid(),
     deckId: input.deckId,
@@ -70,6 +70,11 @@ export async function createNote(input: NoteInput): Promise<Note> {
     updated: now,
   }
   const cards = ordsForNote(note.type, note.front).map((ord, i) => newCard(note, ord, now + i))
+  return { note, cards }
+}
+
+export async function createNote(input: NoteInput): Promise<Note> {
+  const { note, cards } = makeNote(input)
   await db.transaction('rw', db.notes, db.cards, async () => {
     await db.notes.add(note)
     await db.cards.bulkAdd(cards)
