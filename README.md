@@ -128,15 +128,20 @@ Les champs peuvent être entre guillemets (`"` doublé pour un guillemet, retour
 
 ```
 src/
-  db.ts            base Dexie (IndexedDB) : paquets, notes, cartes, révisions, médias, réglages
+  db.ts            base Dexie (IndexedDB, schéma v3) : paquets, notes, cartes, révisions, médias, réglages
   types.ts         types du domaine
-  lib/             logique pure et testée
-    scheduler.ts   enveloppe ts-fsrs (FSRS) + intervalles affichés
-    queue.ts       file d'étude, limites quotidiennes, annulation
+  lib/             logique pure et testée (Vitest)
+    scheduler.ts   enveloppe ts-fsrs (DefaultScheduler, FSRS-6) + intervalles affichés
+    queue.ts       file d'étude indexée, limites quotidiennes, notation, annulation
     notes.ts decks.ts cloze.ts render.ts search.ts typed.ts
-    csv.ts backup.ts apkg.ts stats.ts media.ts markdown.ts
+    csv.ts backup.ts autobackup.ts apkg.ts stats.ts media.ts markdown.ts
+    storage.ts errors.ts download.ts theme.ts
   pages/           écrans (Paquets, Étude, Éditeur, Parcourir, Stats, Réglages)
-  components/      Markdown (assaini avec DOMPurify), dialogues, icônes
+  components/      Markdown (assaini avec DOMPurify), dialogues accessibles, bandeau de sauvegarde,
+                   sécurité des données, écran d'erreur, icônes
+e2e/               tests de bout en bout Playwright (desktop, iPhone, Android, GitHub Pages)
+scripts/           icônes, lanceur d'outils (casse Windows), build/serveur « GitHub Pages »
+.github/workflows/ ci.yml (tests) et deploy.yml (GitHub Pages)
 DECISIONS.md       choix de conception pris en autonomie
 RAPPORT.md         état d'avancement, bugs connus, prochaines étapes
 ```

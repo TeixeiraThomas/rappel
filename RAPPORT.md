@@ -1,57 +1,96 @@
-# Rapport de session
+# Rapport — session 2 (fiabilisation)
 
-État au terme de la session autonome. Les choix de conception sont dans [DECISIONS.md](DECISIONS.md), l'usage dans [README.md](README.md).
+Objectif de la session : fiabiliser et peaufiner l'app existante, sans grosse nouvelle fonctionnalité.
+Les choix de conception sont dans [DECISIONS.md](DECISIONS.md) (n° 28 à 59), l'usage dans [README.md](README.md).
 
-## Ce qui est fait
+## Résultat en un coup d'œil
 
-Les 8 fonctionnalités demandées sont implémentées, chacune committée séparément avec ses tests.
+| Contrôle | Résultat |
+|---|---|
+| Tests unitaires (Vitest) | **79 tests**, tous verts |
+| Tests de bout en bout (Playwright) | **152 verts, 0 échec** (155 définis : 3 tests de balayage tactile sont ignorés sur le profil desktop, sans écran tactile) ; durée ≈ 2,3 min |
+| `tsc --noEmit` / `vite build` | sans erreur ; bundle principal ≈ 354 ko (≈ 114 ko gzip), contre ≈ 590 ko |
+| Accessibilité (axe-core, WCAG 2.0/2.1 A + AA, thèmes sombre et clair) | **0 violation** sur tous les écrans |
+| Build GitHub Pages (base `/rappel/`) | vérifié en local : chemins, manifeste, service worker, hors ligne, WASM |
 
-| # | Fonctionnalité | État |
-|---|---|---|
-| 1 | Paquets/sous-paquets (créer, renommer, déplacer, supprimer en cascade), tags, recherche | ✅ |
-| 2 | Cartes recto/verso, + inverse, texte à trous, Markdown, blocs de code (bouton Copier), images (fichier ou collage) | ✅ |
-| 3 | Révision : 4 boutons avec intervalle, clavier, balayage, annulation | ✅ |
-| 4 | FSRS (`ts-fsrs`), limites quotidiennes réglables, rétention réglable | ✅ |
-| 5 | Mode « taper la réponse » avec comparaison et différences | ✅ |
-| 6 | Import CSV `recto;verso;tags` ; export/import JSON complet (fusion ou remplacement) | ✅ |
-| 7 | Statistiques : à revoir aujourd'hui, série, réussite 30 j, calendrier d'activité, prévision 30 j | ✅ |
-| 8 | Import Anki `.apkg` (contenu, tags, paquets hiérarchiques, images) | ✅ (sans planification) |
-| – | PWA installable, hors ligne (tout précaché, WASM compris), icônes, manifeste, workflow GitHub Pages | ✅ |
-| – | README (lancement, iPhone/Android/PC, déploiement), DECISIONS | ✅ |
+## Ce qui a changé, par priorité
 
-### Vérifications effectuées
+### 1. Bugs connus de la session 1
+- **Dernière carte en apprentissage** : écran « Prochaine carte dans mm:ss » avec « Continuer maintenant » / « Terminer » (plus de carte qui réapparaît instantanément).
+- **Bundle** : écrans secondaires chargés à la demande, JSZip et sql.js chargés seulement à l'import `.apkg`.
+- **Casse du chemin sous Windows** : `npm test` et `npm run test:e2e` passent par un lanceur qui corrige le chemin.
+- Reclassés « comportement voulu » (justifiés dans DECISIONS) : historique conservé après suppression d'une carte, limites quotidiennes globales, `::` dans un trou (compatibilité Anki). `.anki21b` reste non supporté (message explicite).
 
-- **54 tests unitaires** (Vitest + fake-indexeddb) : cloze, paquets/arbre/cycles, notes↔cartes, recherche, FSRS (intervalles croissants, oublis), file d'étude et limites, annulation, journée d'étude (4 h), comparaison de réponses, CSV (guillemets, BOM, CRLF), sauvegarde aller-retour, statistiques (série, prévision), import `.apkg` (archive fabriquée dans le test).
-- `tsc --noEmit` et `vite build` sans erreur.
-- **Contrôle dans un vrai navigateur** (Chromium piloté par Playwright), en 400 px puis 1200 px : création de paquet et de carte avec bloc de code, révision au clavier (révéler, noter, réapparition d'une carte en apprentissage, annulation avec retour à l'état « nouvelle » en base), page Statistiques avec données de démonstration, page Réglages, **import d'un `.apkg` réel via le sélecteur de fichier** (chargement du WASM sql.js OK), service worker activé avec 13 fichiers précachés.
+### 2. Tests de bout en bout (Playwright)
+- Chromium desktop + émulation iPhone 13 + Pixel 7, sur le **build de production**.
+- Couvrent : création de cartes (recto/verso, inverse, trous, code, validation, modification/suppression), révision au clavier, **balayage tactile réel** (événements tactiles DevTools), mode « taper la réponse » (exact / presque / faux), import CSV, export + effacement + restauration JSON, annulation d'une restauration, import `.apkg`, **hors ligne avec coupure réseau réelle**, manifeste/icônes, accessibilité, 10 000 cartes, build GitHub Pages, sécurité des données et finitions.
+- **Deux vrais défauts découverts et corrigés grâce à eux** :
+  1. le **balayage ne fonctionnait pas au doigt** (le navigateur annulait le geste car `touch-action` n'était pas sur le conteneur défilant) ;
+  2. une touche enchaînée très vite après une réponse pouvait être **perdue** (écriture en base bloquante) → notation désormais instantanée, écriture en arrière-plan ordonnée.
 
-## Ce qui n'est PAS fait / non vérifié
+### 3. Migration de `ts-fsrs` (API dépréciée `fsrs().repeat()` → `DefaultScheduler`)
+- Tests de non-régression écrits **avant** (instantanés de 5 parcours complets × 4 boutons × chaque étape, fuzz désactivé).
+- Version FSRS-6 imposée (le défaut de la nouvelle API est FSRS-7, qui aurait changé tous les intervalles).
+- **Résultat : identique à l'ancienne API, sauf un cas extrême** — carte très difficile en réapprentissage dont la stabilité est inférieure à 1 jour : « Facile » donne 2 j au lieu de 1 j (l'ancienne API donnait à « Facile » le même intervalle qu'à « Bien »). Écart accepté et documenté (DECISIONS n° 34).
+- Le fuzz (variation aléatoire des intervalles longs) est identique entre les deux API (ex. « Facile » d'une carte neuve : 6 à 10 j autour de 8 j).
 
-- **Aucun test sur un vrai iPhone ou Android** : l'installation (Partager → Sur l'écran d'accueil, bannière Chrome), les safe-areas et le comportement de stockage iOS sont conformes aux bonnes pratiques mais non éprouvés sur appareil.
-- **Balayage tactile** : implémenté (Pointer Events) mais non testé avec un vrai doigt ; seul le clavier a été exercé dans le navigateur.
-- **Mode « taper la réponse »** : la logique de comparaison est testée unitairement ; le parcours d'interface (saisie → vérifier → affichage des différences) n'a pas été rejoué dans le navigateur.
-- **Parcours UI de l'import CSV et de la restauration JSON** : logique couverte par tests, écrans non rejoués dans le navigateur (l'import `.apkg` l'a été).
-- **Mode hors ligne réel** (coupure réseau puis rechargement) : on a vérifié que tout est précaché, pas simulé la coupure.
-- Pas de lecteur audio / vidéo, pas d'export CSV, pas de réglages par paquet, pas de cartes « sœurs enterrées », pas de détection de cartes « sangsues ».
-- Pas de conversion de la planification Anki à l'import `.apkg`.
+### 4. Sécurité des données
+- `navigator.storage.persist()` au lancement **et** au premier geste ; état, espace utilisé et bouton « Protéger le stockage » dans les Réglages.
+- **Rappel de sauvegarde** (bandeau sur l'accueil) : 7 jours par défaut, réglable ou désactivable, « Plus tard » = report de 3 jours.
+- **Confirmation avant toute suppression** (paquet, carte, tout effacer, tout remplacer, sauvegarde automatique) ; confirmation aussi avant de quitter l'éditeur avec du texte non enregistré.
+- **Sauvegarde automatique avant chaque import (CSV, Anki), restauration (fusion ou remplacement) et effacement total** : base IndexedDB séparée, 5 instantanés gardés, restaurables ou téléchargeables depuis les Réglages ; si impossible (quota), l'opération continue et un avertissement s'affiche.
 
-## Bugs et limites connus
+### 5. Accessibilité et performances
+- **Accessibilité** : contrastes WCAG AA (palette révisée dans les deux thèmes), lien d'évitement, focus visible, dialogues (focus initial, piège à focus, Échap, restitution du focus), ligne de paquet = un seul bouton nommé, plus de contrôles imbriqués, barre de progression nommée, notifications lues par les lecteurs d'écran, `aria-current`, titre de page par écran, `prefers-reduced-motion`.
+- **Performances, 10 000 cartes** (10 paquets × 1 000 cartes), mesures isolées sur cette machine (Chromium desktop) :
 
-1. **Dernière carte en apprentissage** : si on répond « À revoir » à la toute dernière carte, elle est représentée immédiatement (pas d'attente de 1 min).
-2. **`.apkg` récents** : le format compressé `.anki21b` n'est pas lu ; il faut exporter avec « Prise en charge des anciennes versions ». Les sons et vidéos sont ignorés. Les champs au-delà du verso sont concaténés au verso.
-3. **Texte à trous** : pas d'imbrication de trous ; un `::` dans la réponse (ex. `std::vector`) est pris pour le début de l'indice (même comportement qu'Anki).
-4. **Taille** : les images sont stockées en base64 dans le JSON de sauvegarde (fichier volumineux avec beaucoup d'images) ; le bundle principal fait ≈ 590 ko (≈ 190 ko gzip) car JSZip est chargé avec les Réglages — séparable par import dynamique.
-5. **Suppression d'une carte** : l'historique de révision est conservé (les statistiques gardent le passé) mais devient « orphelin ».
-6. **Limites quotidiennes globales** : étudier un sous-paquet consomme le même quota que le reste de la collection.
-7. **API `ts-fsrs`** : on utilise `fsrs().repeat()`, marquée dépréciée dans la v6 (toujours fonctionnelle). À migrer vers `DefaultScheduler` ; isolé dans `lib/scheduler.ts`.
-8. **iOS** : hors écran d'accueil, Safari peut purger les données d'un site peu visité. Exporter des sauvegardes régulièrement.
-9. **Windows** : lancer Vitest depuis un chemin à la casse exacte (`C:\…`), sinon les suites échouent (« Cannot read properties of undefined (reading 'config') »).
-10. Si un service worker d'une ancienne version est actif en développement local, vider le cache du site avant de comparer (rencontré pendant les tests).
+| Opération | Durée |
+|---|---|
+| Accueil (rechargement complet + compteurs de tous les paquets) | ≈ 1,0 s |
+| Parcourir (affichage de 10 000 notes, paginées par 100) | ≈ 0,9 s |
+| Recherche par mots / par tag + paquet | ≈ 70 ms / ≈ 60 ms |
+| Statistiques | ≈ 0,4 s |
+| Démarrage d'une séance sur toute la collection | **≈ 80 ms** (0,87 s avant l'index `[état+échéance]`) |
+| Réponse → carte suivante | ≈ 25 ms |
+| Retour à l'accueil après une séance | ≈ 0,85 s |
+
+### 6. Finitions
+- Écrans vides soignés (accueil, parcourir, statistiques, « Rien à étudier pour le moment »), page « introuvable », écran d'erreur dédié si IndexedDB est bloqué (navigation privée), messages d'erreur en français (stockage plein, base inaccessible…), garde-fou contre la page blanche, animations discrètes désactivées par « réduire les animations ».
+
+### 7. Build GitHub Pages
+- `node scripts/serve-gh.mjs` construit avec la base `/rappel/` et la sert ; les tests vérifient chaque ressource (aucun 404, rien hors de `/rappel/`), le manifeste (`start_url`, `scope`, icônes), la portée du service worker et le fonctionnement hors ligne dans le sous-dossier.
+- Ajout d'un workflow CI (`.github/workflows/ci.yml`) : types + tests unitaires + e2e sur chaque PR.
+
+## À tester sur un vrai téléphone (non couvert par l'automatisation)
+
+Les profils « iPhone » et « Android » sont des **émulations sur Chromium** (taille d'écran, tactile, user-agent). Safari/WebKit réel n'a pas pu être testé ici. À vérifier à la main :
+
+1. **iPhone (Safari)** : *Partager → Sur l'écran d'accueil*, lancement en plein écran, icône, barre d'état sombre, encoche et barre d'accueil (zones sûres).
+2. **Stockage persistant sur iOS** : l'état affiché dans Réglages (iOS accorde ou refuse `persist()` selon l'usage) ; l'app survit-elle à plusieurs jours sans ouverture ? (d'où le rappel de sauvegarde).
+3. **Mode avion** (hors ligne réel) après installation : démarrage, révision, ajout de cartes.
+4. **Balayage au doigt** : ressenti, seuil de 100 px, conflit éventuel avec le défilement d'une longue carte, geste de retour de Safari au bord de l'écran.
+5. **Clavier virtuel** : mode « taper la réponse » et éditeur — le clavier masque-t-il les boutons de notation ?
+6. **Imports de fichiers depuis l'app Fichiers** : `.csv`, `.json`, `.apkg` (le sélecteur iOS peut griser des types inconnus) ; **export JSON** (téléchargement sur iOS : feuille de partage ou dossier Téléchargements ?).
+7. **Images** : ajout depuis la photothèque / appareil photo, redimensionnement, enregistrement WebP (Safari encode souvent en PNG/JPEG : repli prévu).
+8. **Android (Chrome)** : bannière / menu « Installer l'application », bouton Retour du système (routage par `#`), icône adaptative (maskable).
+9. **Lecteurs d'écran réels** : VoiceOver (iOS) et TalkBack (Android) — axe-core valide la structure, pas l'expérience d'écoute.
+10. **Mise à jour de l'app** installée (nouveau déploiement) : le service worker s'active-t-il au prochain lancement sans perte de données ?
+
+## Bugs et limites restants
+
+1. **Compteurs de l'accueil et écran Parcourir** lisent toute la collection en mémoire : fluide à 10 000 cartes (< 1 s), à indexer au-delà de ~50 000 cartes.
+2. **Sauvegardes automatiques stockées sur le même appareil** : elles protègent d'une mauvaise manipulation, **pas d'une perte de l'appareil** — l'export JSON vers un autre emplacement reste nécessaire. Avec beaucoup d'images, 5 instantanés occupent de la place (un avertissement s'affiche si le quota est atteint).
+3. **iOS** : sans installation sur l'écran d'accueil, Safari peut toujours purger les données d'un site peu visité ; la persistance n'est pas garantie par le navigateur.
+4. **Import Anki** : `.anki21b` non lu, planification non convertie, audio/vidéo ignorés, champs au-delà du verso concaténés.
+5. **Texte à trous** : pas d'imbrication ; un `::` dans la réponse est pris pour l'indice (comme Anki).
+6. **Intervalles avec fuzz** : légèrement aléatoires (±2 j autour de 8 j pour une première réussite facile) — comportement normal de FSRS, mais déroutant dans les captures d'écran/tests.
+7. **Limites quotidiennes globales** (pas par paquet).
+8. **Tap juste après un balayage simulé** : avalé par l'inertie de Chrome dans les tests — constaté en émulation, non confirmé sur un vrai doigt (voir point 4 de la liste ci-dessus).
+9. Écran de révision : un recto très long avec balayage horizontal n'a pas été éprouvé sur appareil.
 
 ## Prochaines étapes suggérées
 
-1. **Tester sur appareils réels** (iPhone Safari, Android Chrome) et corriger ce qui apparaît ; ajouter des tests de bout en bout Playwright (révision, CSV, JSON, hors ligne).
-2. **Synchronisation entre appareils** : options — (a) sauvegarde/restauration automatique vers un dossier (File System Access API) ou un service de stockage au choix de l'utilisateur ; (b) backend léger (Supabase/PocketBase) avec fusion par identifiants + horodatage `updated` (les identifiants UUID et les journaux de révision sont déjà prévus pour une fusion sans conflit) ; (c) CRDT pour les notes. Garder le mode local d'abord, la synchro facultative.
-3. **Version native avec Capacitor** (App Store / Play Store) : `npm i @capacitor/core @capacitor/cli`, `npx cap init`, build web → `npx cap add ios android`. Prévoir : stockage via SQLite natif ou persistance garantie (l'éviction iOS disparaît en natif), notifications locales de rappel quotidien, partage/ouverture de fichiers `.apkg`/`.csv`, icônes et écrans de lancement, comptes développeur (Apple 99 $/an, Google 25 $ une fois).
-4. **Rappels** : notifications locales (natif) ou Web Push (nécessite un serveur) pour la révision quotidienne.
-5. **Qualité de vie** : réglages par paquet, étapes d'apprentissage configurables, coloration syntaxique des blocs de code (shell/Cisco IOS), export CSV, déplacement groupé de cartes, éditeur en lot, optimisation des paramètres FSRS sur l'historique, import de la planification Anki, audio.
+1. **Essai sur vrais appareils** avec la liste ci-dessus, corriger ce qui apparaît ; ajouter un profil WebKit aux tests dès qu'un environnement l'autorise.
+2. **Synchronisation entre appareils** (facultative, local d'abord) : sauvegarde/restauration vers un dossier ou un stockage au choix, ou backend léger (Supabase/PocketBase) avec fusion par identifiants UUID + horodatage `updated` (déjà prévus dans le modèle).
+3. **Version native Capacitor** (App Store / Play Store) : stockage natif (fin du risque d'éviction iOS), rappels quotidiens par notifications locales, ouverture de fichiers `.apkg` / `.csv` depuis d'autres apps.
+4. **Qualité de vie** : réglages par paquet, étapes d'apprentissage configurables, coloration syntaxique des blocs de code (shell, Cisco IOS), export CSV, import de la planification Anki, audio, optimisation des paramètres FSRS sur l'historique, index des compteurs pour les très grosses collections.
