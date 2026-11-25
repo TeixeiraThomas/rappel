@@ -2,7 +2,8 @@
 
 Application web progressive (PWA) de cartes mémoire, inspirée d'Anki mais plus simple et plus moderne.
 Interface en français, mode sombre, pensée pour le mobile d'abord. Fonctionne **hors ligne** et s'installe
-sur iPhone, Android et PC. Toutes les données restent sur l'appareil (IndexedDB) ; aucun compte, aucun serveur.
+sur iPhone, Android et PC. Les données vivent sur l'appareil (IndexedDB) ; un **compte facultatif** (Firebase) les
+synchronise entre PC et téléphone.
 
 ## Fonctionnalités
 
@@ -16,6 +17,9 @@ sur iPhone, Android et PC. Toutes les données restent sur l'appareil (IndexedDB
 - **Sécurité des données** : stockage persistant demandé au navigateur (état affiché dans les Réglages), rappel de sauvegarde régulier
   (réglable), confirmation avant toute suppression, **sauvegarde automatique avant chaque import ou restauration** (5 dernières
   gardées, restaurables en un clic, dans une base séparée).
+- **Compte et synchronisation (facultatif)** : Réglages → « Compte et synchronisation ». Même compte sur le PC et le
+  téléphone = mêmes paquets, cartes, révisions, images et réglages. Synchro automatique à l'ouverture, au retour sur
+  l'onglet, au retour du réseau et toutes les 5 min ; l'app reste utilisable hors ligne. Détails plus bas.
 - **Accessibilité** : navigation complète au clavier, lien d'évitement, dialogues à focus piégé, contrastes WCAG AA vérifiés, compatible lecteurs d'écran, respecte « réduire les animations ».
 - **Robustesse** : messages d'erreur en français, écran dédié si le stockage local est bloqué, notation instantanée (écriture en arrière-plan).
 
@@ -107,6 +111,22 @@ Connectez le dépôt, puis : commande de build `npm run build`, dossier de sorti
 ### Option C — Glisser-déposer
 
 `npm run build`, puis déposez le dossier `dist/` sur [Netlify Drop](https://app.netlify.com/drop).
+
+## Compte et synchronisation (Firebase)
+
+La synchro utilise Firebase (offre gratuite Spark) : **Authentication** (e-mail + mot de passe) et **Cloud Firestore**
+(région Europe). Chaque utilisateur ne peut lire et écrire que `users/{son uid}/…` (règles Firestore).
+
+- **Configuration** : coller l'objet `firebaseConfig` de la console Firebase (Paramètres du projet → Vos applications)
+  dans `src/lib/firebase-config.ts`. Sans configuration, la section du compte est masquée et l'app fonctionne comme avant.
+  La clé `apiKey` d'une app web Firebase n'est pas un secret (elle identifie le projet) : la sécurité repose sur les
+  règles Firestore. GitHub peut quand même envoyer une alerte « Google API Key » : c'est attendu.
+- **Principe** : chaque enregistrement porte une date de modification locale (`_u`) ; la synchro envoie ce qui a changé
+  depuis le dernier envoi, reçoit ce qui a changé ailleurs, et en cas de conflit **la modification la plus récente gagne**
+  (par enregistrement). Les suppressions sont transmises (table locale `tombstones`).
+- **Limites** : « Tout remplacer » (restauration) ou « Tout effacer » sur un appareil synchronisé ne supprime pas les
+  données du compte ; une image de plus de ~900 Ko n'est pas synchronisée. **Importez vos cartes sur un seul appareil**
+  puis laissez la synchro les copier ailleurs, sinon vous aurez des doublons.
 
 ## Format des imports
 

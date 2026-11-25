@@ -1,3 +1,24 @@
+# Rapport — session 4 (compte et synchronisation, 25 novembre)
+
+**Nouveau** : compte facultatif (Firebase Auth, e-mail + mot de passe) et synchronisation PC ↔ téléphone via Firestore.
+
+| Élément | Fichier |
+|---|---|
+| Suivi des modifications (`_u`), suppressions (`tombstones`, base v4) | `src/lib/syncTracking.ts`, `src/db.ts` |
+| Moteur de synchro (envoi/réception, « le plus récent gagne », sans écho) | `src/lib/sync.ts` |
+| Firebase chargé à la demande (aucun coût au démarrage sans compte) | `src/lib/cloud.ts`, `src/lib/firebase-config.ts` |
+| Écran « Compte et synchronisation » dans les Réglages | `src/components/AccountSync.tsx` |
+
+Tests : 10 tests unitaires à deux appareils simulés (`src/lib/sync.test.ts`) : PC → téléphone, modification en retour,
+suppression, conflit, pas d'écho, réglages, changement de compte… → **91 tests unitaires verts**, `tsc` sans erreur.
+
+**Correction de la CI** : le premier passage GitHub Actions (commit ed80b2f) a échoué sur 4 tests e2e. Ce n'étaient pas
+des bugs de l'app mais deux courses dans les tests : `saveCard()` attendait la disparition du champ « Recto », absent
+des textes à trous, et repartait avant la fin de l'enregistrement ; « le choix du mode est mémorisé » rechargeait la page
+avant l'écriture du réglage. Les deux attendent maintenant la vraie fin de l'écriture.
+
+---
+
 # Rapport — session 3 (corrections après un test manuel, 25 novembre)
 
 Quatre défauts relevés en utilisant l'app à la main, corrigés avec un test chacun :

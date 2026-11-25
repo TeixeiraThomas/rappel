@@ -100,3 +100,11 @@ Décisions prises en autonomie pendant la session (aucune question posée, comme
 ## GitHub Pages
 
 59. `node scripts/serve-gh.mjs` construit avec `BASE_PATH=/rappel/` dans `dist-gh/` et le sert ; les tests vérifient : aucune ressource en 404 ni hors de `/rappel/`, manifeste (`start_url`, `scope`, icônes), service worker de portée `/rappel/`, fonctionnement hors ligne et WASM de l'import `.apkg` sous le sous-dossier.
+
+## Synchronisation (session 4)
+
+60. **Firebase** (Auth e-mail/mot de passe + Firestore « lite », région eur3, offre gratuite) plutôt qu'un serveur maison : rien à héberger ni à maintenir. SDK 12.x (le 13.x exige Node ≥ 24.12, la CI est en Node 22). Chargé par import dynamique : l'app sans compte ne télécharge pas Firebase.
+61. **Dernière écriture gagnante par enregistrement** : simple et prévisible pour un seul utilisateur sur 2–3 appareils. `_u` = date de modification locale (crochets Dexie), `_p` = dernière version envoyée/reçue ; une ligne est à envoyer si `_u > _p`. Les écritures reçues passent par une transaction marquée « distante » que les crochets ignorent (pas d'écho).
+62. **Curseur serveur** : chaque document Firestore porte `s` (horodatage serveur) ; la réception demande `s > dernier s vu` par table, ce qui évite de dépendre de l'horloge des appareils pour savoir quoi télécharger.
+63. **Données** : `users/{uid}/{table}/{id}` = `{data, u, s}` ou `{del: true, u, s}` ; du `kv` seul `settings` est synchronisé (l'état de synchro reste local) ; médias > 900 Ko ignorés (limite de 1 Mo par document).
+

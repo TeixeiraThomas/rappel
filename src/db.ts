@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie'
 import type { Card, Deck, MediaItem, Note, ReviewLog, Settings } from './types'
 import { DEFAULT_SETTINGS } from './types'
+import { installSyncTracking, type Tombstone } from './lib/syncTracking'
 
 /** Identifiant unique (UUID v4 ; repli si crypto.randomUUID est indisponible). */
 export function uid(): string {
@@ -8,7 +9,7 @@ export function uid(): string {
   return 'id-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
 }
 
-class RappelDB extends Dexie {
+export class RappelDB extends Dexie {
   decks!: Table<Deck, string>
   notes!: Table<Note, string>
   cards!: Table<Card, string>
@@ -16,6 +17,10 @@ class RappelDB extends Dexie {
   media!: Table<MediaItem, string>
   /** Stockage clé/valeur (réglages…). */
   kv!: Table<{ key: string; value: unknown }, string>
+  /** Suppressions locales en attente d'envoi au serveur (synchronisation). */
+  tombstones!: Table<Tombstone, string>
+  /** Attend l'écriture des dernières pierres tombales (installé par installSyncTracking). */
+  waitTombstones!: () => Promise<void>
 
   constructor(name = 'rappel') {
     super(name)
@@ -31,6 +36,9 @@ class RappelDB extends Dexie {
     this.version(2).stores({ notes: 'id, deckId, *tags, updated, created' })
     // v3 : index composé [état+échéance] pour construire la file d'étude sans lire toute la collection.
     this.version(3).stores({ cards: 'id, noteId, deckId, due, state, [deckId+state], [state+due]' })
+    // v4 : suppressions à propager lors de la synchronisation entre appareils.
+    this.version(4).stores({ tombstones: 'key' })
+    installSyncTracking(this)
   }
 }
 

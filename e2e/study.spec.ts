@@ -151,6 +151,13 @@ test.describe('Mode « taper la réponse »', () => {
   test('le choix du mode est mémorisé', async ({ page }) => {
     await startStudy(page)
     await page.getByRole('button', { name: 'Taper', exact: true }).click()
+    // Attendre que le réglage soit réellement écrit en base avant de recharger (sinon course sur CI).
+    await expect
+      .poll(async () => {
+        const kv = await readTable<{ key: string; value: { typedAnswer?: boolean } }>(page, 'kv')
+        return kv.find((r) => r.key === 'settings')?.value.typedAnswer
+      })
+      .toBe(true)
     await page.reload()
     await expect(page.getByLabel('Votre réponse')).toBeVisible()
   })

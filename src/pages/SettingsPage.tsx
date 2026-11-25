@@ -4,6 +4,7 @@ import { applyTheme } from '../lib/theme'
 import { askConfirm, toast } from '../components/ui'
 import { db, getSettings, saveSettings } from '../db'
 import { DataSafety } from '../components/DataSafety'
+import { AccountSync } from '../components/AccountSync'
 import { autoBackup, restoreBackupSafely } from '../lib/autobackup'
 import { exportBackup, markBackupDone, validateBackup, type Backup } from '../lib/backup'
 import { downloadFile } from '../lib/download'
@@ -154,6 +155,8 @@ export function SettingsPage() {
   return (
     <>
       <div className="page-head"><h1>Réglages</h1></div>
+
+      <AccountSync />
 
       <section className="card section">
         <h2>Révision</h2>

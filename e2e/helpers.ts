@@ -101,8 +101,14 @@ export async function makeApkg(): Promise<Buffer> {
   return Buffer.from(await zip.generateAsync({ type: 'uint8array' }))
 }
 
-/** Enregistre la carte en cours d'édition et attend la fin de l'enregistrement (retour à l'écran précédent). */
+/**
+ * Enregistre la carte en cours d'édition et attend la fin de l'enregistrement (retour à l'écran précédent).
+ * On attend la disparition du bouton « Enregistrer » (présent pour TOUS les types de carte) : attendre
+ * celle du champ « Recto » ne marchait pas pour un texte à trous (pas de champ Recto) et laissait le test
+ * repartir avant la fin de l'écriture — le retour arrière de l'éditeur le ramenait alors sur « Nouvelle carte ».
+ */
 export async function saveCard(page: Page) {
-  await page.getByRole('button', { name: 'Enregistrer', exact: true }).click()
-  await expect(page.getByLabel('Recto', { exact: true })).toHaveCount(0)
+  const save = page.getByRole('button', { name: 'Enregistrer', exact: true })
+  await save.click()
+  await expect(save).toHaveCount(0)
 }

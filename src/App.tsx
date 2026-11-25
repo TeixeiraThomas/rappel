@@ -5,6 +5,7 @@ import { IconChart, IconDecks, IconSearch, IconSettings } from './components/ico
 import { DialogHost, toast } from './components/ui'
 import { friendlyError } from './lib/errors'
 import { applyTheme } from './lib/theme'
+import { installAutoSync } from './lib/cloud'
 import { href, useRoute } from './router'
 import { Home } from './pages/Home'
 import { Study } from './pages/Study'
@@ -45,6 +46,7 @@ export default function App() {
     db.open()
       .then(() => getSettings())
       .then((s) => applyTheme(s.theme))
+      .then(() => installAutoSync())
       .catch(setDbError)
     // Dernier filet : une promesse rejetée non gérée devient un message lisible, jamais un échec silencieux.
     const onRejection = (e: PromiseRejectionEvent) => {
