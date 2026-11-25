@@ -64,6 +64,27 @@ test.describe('Révision au clavier', () => {
     await expect.poll(async () => (await logs(page)).length).toBe(0)
   })
 
+  test('Z annule aussi sur l’écran d’attente « Prochaine carte dans… »', async ({ page }) => {
+    await startStudy(page, [CARDS[0]])
+    await reveal(page)
+    await page.keyboard.press('3') // Bien → la seule carte passe en apprentissage : écran d'attente
+    await expect(page.getByRole('heading', { name: /Prochaine carte dans/ })).toBeVisible()
+    await expect.poll(async () => (await logs(page)).length).toBe(1)
+    await page.keyboard.press('z')
+    await expect(page.locator('.study-card')).toContainText('France')
+    await expect.poll(async () => (await logs(page)).length).toBe(0)
+  })
+
+  test('Z annule aussi sur l’écran de fin de séance', async ({ page }) => {
+    await startStudy(page, [CARDS[0]])
+    await reveal(page)
+    await page.keyboard.press('4') // Facile → plus rien aujourd'hui : fin de séance
+    await expect(page.getByRole('heading', { name: /Séance terminée/ })).toBeVisible()
+    await page.keyboard.press('z')
+    await expect(page.locator('.study-card')).toContainText('France')
+    await expect.poll(async () => (await logs(page)).length).toBe(0)
+  })
+
   test('Échap quitte la séance', async ({ page }) => {
     await startStudy(page)
     await page.keyboard.press('Escape')
@@ -107,6 +128,24 @@ test.describe('Mode « taper la réponse »', () => {
     await expect(page.getByText('✗ Incorrect')).toBeVisible()
     await expect(page.locator('.rate.r1.suggested')).toBeVisible()
     await expect(page.locator('.diff').nth(1)).toHaveText('Rome')
+  })
+
+  test('le bouton affiche Entrée (et non Espace), et l’explication entre parenthèses est ignorée', async ({ page }) => {
+    await startStudy(page, [{ front: 'Hôtes utilisables dans un /27 ?', back: '30 (2^5 - 2)' }])
+    await page.getByRole('button', { name: 'Taper', exact: true }).click()
+    const verify = page.getByRole('button', { name: /Vérifier/ })
+    await expect(verify.locator('.kbd')).toHaveText('Entrée')
+    await expect(page.locator('.shortcuts')).toContainText('Entrée : vérifier')
+    const box = page.getByLabel('Votre réponse')
+    await box.fill('30')
+    await box.press('Enter')
+    await expect(page.getByText('✓ Exact')).toBeVisible()
+    await expect(page.locator('.rate.r3.suggested')).toBeVisible()
+  })
+
+  test('sans le mode « taper », le bouton affiche toujours Espace', async ({ page }) => {
+    await startStudy(page)
+    await expect(page.getByRole('button', { name: /Afficher la réponse/ }).locator('.kbd')).toHaveText('Espace')
   })
 
   test('le choix du mode est mémorisé', async ({ page }) => {

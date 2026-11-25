@@ -102,3 +102,21 @@ test.describe('Création de cartes', () => {
     await expect(page.getByText('Aucune carte')).toBeVisible()
   })
 })
+
+test.describe('Liste des paquets', () => {
+  test('pas de colonne de flèches vide tant qu’aucun paquet n’a de sous-paquet', async ({ page }) => {
+    await openApp(page)
+    await createDeckUI(page, 'Réseau')
+    // Aucun sous-paquet : pas de flèche (ni de place vide) avant le nom
+    await expect(page.locator('.deck-row .twisty')).toHaveCount(0)
+
+    // Un sous-paquet apparaît : la flèche revient pour pouvoir replier
+    await page.getByRole('button', { name: 'Options de Réseau' }).click()
+    await page.getByRole('button', { name: 'Nouveau sous-paquet' }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByRole('textbox').fill('OSPF')
+    await dialog.getByRole('textbox').press('Enter')
+    await expect(page.getByRole('button', { name: 'Étudier Réseau::OSPF' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Replier' })).toBeVisible()
+  })
+})

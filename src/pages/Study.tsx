@@ -194,9 +194,20 @@ export function Study({ deckId }: { deckId: string | null }) {
   // Raccourcis clavier (PC).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (phase !== 'study' || waitUntil || e.ctrlKey || e.metaKey || e.altKey) return
+      if (phase === 'loading' || e.ctrlKey || e.metaKey || e.altKey) return
       const inField = (e.target as HTMLElement)?.tagName === 'TEXTAREA' || (e.target as HTMLElement)?.tagName === 'INPUT'
       if (e.key === 'Escape') return navigate('/')
+      // Annuler (Z / U / Retour arrière) marche sur TOUS les écrans de la séance : carte affichée,
+      // attente « Prochaine carte dans… » et fin de séance, comme le bouton d'annulation.
+      if (e.key === 'z' || e.key === 'u' || e.key === 'Backspace') {
+        if (!inField && history.length > 0) {
+          e.preventDefault()
+          void undo()
+        }
+        return
+      }
+      // Les autres raccourcis ne concernent que la carte affichée.
+      if (phase !== 'study' || waitUntil) return
       if (inField && !(e.key === 'Enter' && !e.shiftKey)) return
       if (!revealed) {
         if (e.key === ' ' || e.key === 'Enter') {
@@ -208,16 +219,10 @@ export function Study({ deckId }: { deckId: string | null }) {
         e.preventDefault()
         rate(comparison ? comparison.suggested : 3)
       }
-      if (e.key === 'z' || e.key === 'u' || e.key === 'Backspace') {
-        if (!inField) {
-          e.preventDefault()
-          void undo()
-        }
-      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [phase, waitUntil, revealed, reveal, rate, undo, comparison])
+  }, [phase, waitUntil, revealed, reveal, rate, undo, comparison, history.length])
 
   useEffect(() => {
     if (phase === 'study' && typedMode && !revealed) typedRef.current?.focus()
@@ -397,8 +402,9 @@ export function Study({ deckId }: { deckId: string | null }) {
                 spellCheck={false}
               />
             )}
+            {/* En mode « taper la réponse », la barre d'espace écrit dans le champ : c'est Entrée qui valide. */}
             <button className="btn primary reveal-btn" onClick={reveal}>
-              {typedMode ? 'Vérifier' : 'Afficher la réponse'} <span className="kbd">Espace</span>
+              {typedMode ? 'Vérifier' : 'Afficher la réponse'} <span className="kbd">{typedMode ? 'Entrée' : 'Espace'}</span>
             </button>
           </>
         ) : (
@@ -412,7 +418,9 @@ export function Study({ deckId }: { deckId: string | null }) {
             ))}
           </div>
         )}
-        <div className="shortcuts">Espace : révéler / « Bien » · 1-4 : noter · Z : annuler · Échap : quitter</div>
+        <div className="shortcuts">
+          {typedMode ? 'Entrée : vérifier / note suggérée' : 'Espace : révéler / « Bien »'} · 1-4 : noter · Z : annuler · Échap : quitter
+        </div>
       </div>
     </div>
   )

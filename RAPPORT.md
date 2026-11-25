@@ -1,3 +1,17 @@
+# Rapport — session 3 (corrections après un test manuel, 25 novembre)
+
+Quatre défauts relevés en utilisant l'app à la main, corrigés avec un test chacun :
+
+| Défaut | Correction | Test |
+|---|---|---|
+| La touche **Z** n'annulait pas sur l'écran « Prochaine carte dans… » ni sur l'écran de fin (le bouton, si) | Annuler (Z / U / Retour arrière) fonctionne sur tous les écrans de la séance | `e2e/study.spec.ts` : 2 tests |
+| En mode « taper la réponse », une explication sur la carte rendait la réponse fausse (« 30 » refusé pour « 30 (2^5 - 2) ») | La réponse est acceptée **avec ou sans le texte entre parenthèses** : écrivez la réponse courte, puis l'explication entre parenthèses | `src/lib/review.test.ts` : 2 tests ; `e2e/study.spec.ts` : 1 test |
+| Le bouton « Vérifier » affichait **Espace** alors que l'espace écrit dans le champ | Affiche **Entrée** en mode « taper », Espace sinon ; la ligne d'aide s'adapte | `e2e/study.spec.ts` : 2 tests |
+| Un espace vide avant le nom des paquets | La colonne des flèches n'apparaît que si au moins un paquet a des sous-paquets | `e2e/cards.spec.ts` : 1 test |
+
+Vérifications : 81 tests unitaires verts, `tsc --noEmit` sans erreur, tests de bout en bout desktop + iPhone + Android : 156 verts.
+À confirmer sur ce PC : les 2 tests « Sauvegarde JSON » (export puis restauration) échouaient dans l'environnement de vérification **avant comme après** ces corrections (problème d'environnement, pas de régression) ; ils passaient en session 2. Le test « .apkg non pris en charge » a échoué une fois en exécution parallèle (2 messages d'erreur à l'écran), puis est passé seul. Lancez `npm run test:e2e` ici pour confirmer.
+
 # Rapport — session 2 (fiabilisation)
 
 Objectif de la session : fiabiliser et peaufiner l'app existante, sans grosse nouvelle fonctionnalité.

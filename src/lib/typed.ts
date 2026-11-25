@@ -81,10 +81,25 @@ function diff(a: string, b: string): { typedParts: Part[]; expectedParts: Part[]
   return { typedParts, expectedParts }
 }
 
-/** Compare la saisie de l'utilisateur à la réponse attendue. */
-export function compareAnswer(typed: string, expected: string): Comparison {
-  const t = typed.trim()
-  const e = expected.trim()
+/**
+ * Retire les explications entre parenthèses : « 30 (2^5 - 2) » → « 30 ».
+ * Permet d'écrire la réponse courte suivie d'une explication sur la même carte.
+ */
+export function stripExplanations(s: string): string {
+  let out = s
+  // Boucle pour gérer les parenthèses imbriquées : « a (b (c)) » → « a ».
+  for (let i = 0; i < 5 && /\([^()]*\)/.test(out); i++) out = out.replace(/\s*\([^()]*\)/g, '')
+  return out
+    .split('\n')
+    .map((l) => l.trimEnd())
+    .join('\n')
+    .trim()
+}
+
+const RANK: Record<Verdict, number> = { exact: 3, correct: 2, close: 1, wrong: 0 }
+
+/** Compare la saisie à UNE forme de la réponse attendue. */
+function compareOne(t: string, e: string): Comparison {
   const { typedParts, expectedParts } = diff(t, e)
   const nt = normalizeAnswer(t)
   const ne = normalizeAnswer(e)
@@ -99,4 +114,24 @@ export function compareAnswer(typed: string, expected: string): Comparison {
 
   const suggested: Rating = verdict === 'exact' || verdict === 'correct' ? 3 : verdict === 'close' ? 2 : 1
   return { verdict, similarity, typedParts, expectedParts, suggested }
+}
+
+/**
+ * Compare la saisie de l'utilisateur à la réponse attendue.
+ * La réponse est acceptée sous sa forme complète OU sans ses explications entre parenthèses ;
+ * on garde la comparaison la plus favorable.
+ */
+export function compareAnswer(typed: string, expected: string): Comparison {
+  const t = typed.trim()
+  const e = expected.trim()
+  const candidates = [e]
+  const short = stripExplanations(e)
+  if (short && short !== e) candidates.push(short)
+
+  let best = compareOne(t, candidates[0])
+  for (const c of candidates.slice(1)) {
+    const cur = compareOne(t, c)
+    if (RANK[cur.verdict] > RANK[best.verdict] || (RANK[cur.verdict] === RANK[best.verdict] && cur.similarity > best.similarity)) best = cur
+  }
+  return best
 }

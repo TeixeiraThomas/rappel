@@ -5,7 +5,7 @@ import { createDeck } from './decks'
 import { createNote } from './notes'
 import { applyReview, buildQueue, dayEnd, dayStart, deckCounts, undoReview } from './queue'
 import { formatDelay, prepareScheduler, previewAll } from './scheduler'
-import { compareAnswer, levenshtein } from './typed'
+import { compareAnswer, levenshtein, stripExplanations } from './typed'
 
 async function reset() {
   await Promise.all([db.decks.clear(), db.notes.clear(), db.cards.clear(), db.reviews.clear(), db.kv.clear()])
@@ -167,5 +167,25 @@ describe('saisie de la réponse', () => {
   it('calcule Levenshtein', () => {
     expect(levenshtein('kitten', 'sitting')).toBe(3)
     expect(levenshtein('', 'abc')).toBe(3)
+  })
+  it('ignore les explications entre parenthèses de la réponse attendue', () => {
+    // Réponse courte seule : acceptée
+    const c = compareAnswer('30', '30 (2^5 - 2)')
+    expect(c.verdict).toBe('exact')
+    expect(c.suggested).toBe(3)
+    // Réponse complète : toujours acceptée
+    expect(compareAnswer('30 (2^5 - 2)', '30 (2^5 - 2)').verdict).toBe('exact')
+    // Casse et accents ignorés aussi sur la forme courte
+    expect(compareAnswer('ROUTEUR', 'routeur (couche 3)').verdict).toBe('correct')
+    // Une mauvaise réponse reste fausse
+    expect(compareAnswer('32', '30 (2^5 - 2)').verdict).toBe('wrong')
+    // Sans parenthèses : comportement inchangé
+    expect(compareAnswer('show vlan', 'show ip route').verdict).toBe('wrong')
+  })
+  it('retire les explications, même imbriquées, sans toucher au reste', () => {
+    expect(stripExplanations('30 (2^5 - 2)')).toBe('30')
+    expect(stripExplanations('a (b (c)) d')).toBe('a d')
+    expect(stripExplanations('show ip route\nshow ip ospf (voisins)')).toBe('show ip route\nshow ip ospf')
+    expect(stripExplanations('(tout entre parenthèses)')).toBe('')
   })
 })

@@ -108,6 +108,9 @@ export function Home() {
 
   if (!decks) return null
 
+  // Au moins un paquet a des sous-paquets : on réserve la colonne des flèches pour aligner les noms.
+  const anyChildren = decks.some((d) => d.parentId)
+
   // Rien à étudier : aucun compteur n'est non nul (les racines incluent déjà leurs sous-paquets).
   const nothingDue = !!counts && decks.length > 0 && [...counts.values()].every((c) => c.new + c.learn + c.review === 0)
 
@@ -134,13 +137,16 @@ export function Home() {
               const hasChildren = node.children.length > 0
               return (
                 <div className="deck-row" key={node.deck.id} style={{ paddingLeft: 8 + node.depth * 18 }}>
-                  <button
-                    className={`twisty${hasChildren ? '' : ' hidden'}${collapsed.has(node.deck.id) ? '' : ' open'}`}
-                    onClick={() => toggle(node.deck.id)}
-                    aria-label={collapsed.has(node.deck.id) ? 'Déplier' : 'Replier'}
-                  >
-                    <IconChevron />
-                  </button>
+                  {/* La flèche (ou sa place vide, pour l'alignement) n'existe que s'il y a des sous-paquets. */}
+                  {anyChildren && (
+                    <button
+                      className={`twisty${hasChildren ? '' : ' hidden'}${collapsed.has(node.deck.id) ? '' : ' open'}`}
+                      onClick={() => toggle(node.deck.id)}
+                      aria-label={collapsed.has(node.deck.id) ? 'Déplier' : 'Replier'}
+                    >
+                      <IconChevron />
+                    </button>
+                  )}
                   <button className="deck-main" onClick={() => navigate(`/study/${node.deck.id}`)} aria-label={`Étudier ${node.path}`}>
                     <span className="deck-name">{node.deck.name}</span>
                   </button>
