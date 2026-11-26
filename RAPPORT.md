@@ -1,3 +1,38 @@
+# Rapport — session 5 (modules prêts à réviser, 26 novembre)
+
+**Nouveau** : écran « Modules » avec 13 modules (≈ 1 940 cartes nouvelles + les 664 cartes CCNA), ajoutables en un geste.
+
+| Élément | Fichier |
+|---|---|
+| Format des modules, catalogue (métadonnées, formats d'examen) | `src/modules/types.ts`, `src/modules/catalog.ts` |
+| Contenu, un fichier chargé à la demande par module | `src/modules/data/*.ts` |
+| 60 panneaux routiers en SVG | `src/modules/signs.ts` |
+| Ajout / mise à jour sans doublon, paquet racine | `src/lib/library.ts` |
+| Écran « Modules » (catégories, programme, durée estimée, ajout, étude) | `src/pages/Library.tsx` |
+| Conception et plan | `docs/superpowers/specs/2026-11-26-modules-design.md`, `docs/superpowers/plans/2026-11-26-modules.md` |
+
+| Module | Cartes | Module | Cartes |
+|---|---|---|---|
+| AWS Cloud Practitioner (CLF-C02) | 253 | CCNA 200-301 | 664 |
+| AWS Solutions Architect Associate (SAA-C03) | 220 | Linux Essentials (010-160) | 171 |
+| Azure Fundamentals (AZ-900) | 136 | CompTIA Security+ | 218 |
+| Azure Administrator (AZ-104) | 150 | ITIL Foundation | 100 |
+| Google Cloud Digital Leader | 120 | Scrum (PSM I) | 91 |
+| Code de la route (auto) | 287 | Premiers secours (PSC1) | 81 |
+| Code de la route (moto) | 113 | | |
+
+Tests : 6 tests d'ajout et de mise à jour (`src/lib/library.test.ts`) et 40 tests de contenu (`src/modules/modules.test.ts` :
+chaque carte valide, rectos uniques, compteurs exacts, SVG bien formés et conservés par DOMPurify) → **137 tests unitaires verts** ;
+e2e `e2e/library.spec.ts` (ajout, réajout sans doublon, étude, filtre, panneaux affichés) et écran « Modules » ajouté au contrôle
+axe (thèmes sombre et clair). Corrigé au passage : débordement horizontal de toutes les pages entre 900 et 1 050 px de large.
+
+**À savoir** : le contenu est rédigé d'après les programmes publiés, avec vérification des points datés (versions d'examen,
+règles 2025-2026), mais il n'a pas été relu par un formateur ; les questions officielles du code (photos, vidéos) ne sont pas
+reproductibles. Security+ : le module couvre le socle commun à SY0-701 et SY0-801 (les objectifs détaillés de SY0-801
+n'étaient pas encore tous publiés au moment de la rédaction).
+
+---
+
 # Rapport — session 4 (compte et synchronisation, 25 novembre)
 
 **Nouveau** : compte facultatif (Firebase Auth, e-mail + mot de passe) et synchronisation PC ↔ téléphone via Firestore.

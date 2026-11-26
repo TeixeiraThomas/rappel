@@ -7,6 +7,9 @@ synchronise entre PC et téléphone.
 
 ## Fonctionnalités
 
+- **Modules prêts à réviser** (écran « Modules ») : AWS Cloud Practitioner et Solutions Architect Associate, Azure AZ-900 et AZ-104,
+  Google Cloud Digital Leader, Code de la route voiture (avec panneaux dessinés) et moto, CCNA, Linux Essentials, CompTIA Security+,
+  ITIL Foundation, Scrum PSM I, Premiers secours — environ 2 600 cartes, un sous-paquet par chapitre du programme. Détails plus bas.
 - **Paquets et sous-paquets** (arbre repliable), **tags**, **recherche** (`mot`, `"phrase"`, `tag:cisco`, `deck:réseau`, `type:cloze`).
 - **Cartes** : recto/verso, recto/verso + inverse, texte à trous (`{{c1::réponse::indice}}`), Markdown, blocs de code avec bouton « Copier », images (import ou collage).
 - **Révision** : recto → réponse → 4 boutons (À revoir, Difficile, Bien, Facile) avec l'intervalle suivant affiché. Clavier sur PC, balayage sur mobile, annulation de la dernière réponse.
@@ -44,7 +47,7 @@ Prérequis : Node.js 20+ (testé avec Node 24).
 ```bash
 npm install
 npm run dev        # serveur de développement : http://localhost:5173
-npm test           # tests unitaires (Vitest, ~70 tests)
+npm test           # tests unitaires (Vitest, ~140 tests)
 npm run test:e2e   # tests de bout en bout (Playwright : desktop + émulation iPhone + Android)
 npm run build      # vérification TypeScript + build de production dans dist/
 npm run preview    # sert le build (nécessaire pour tester le mode hors ligne / l'installation)
@@ -128,6 +131,27 @@ La synchro utilise Firebase (offre gratuite Spark) : **Authentication** (e-mail 
   données du compte ; une image de plus de ~900 Ko n'est pas synchronisée. **Importez vos cartes sur un seul appareil**
   puis laissez la synchro les copier ailleurs, sinon vous aurez des doublons.
 
+## Modules prêts à réviser
+
+Écran **Modules** (dans la navigation) : chaque module couvre le programme officiel de l'examen visé, chapitre par chapitre,
+avec un chapitre « L'examen » (format, note requise, pièges). « Ajouter » crée un paquet racine et un sous-paquet par chapitre ;
+les cartes arrivent dans l'ordre du programme, au rythme du réglage « nouvelles cartes par jour ».
+
+| Catégorie | Modules (version visée) |
+|---|---|
+| Cloud | AWS Cloud Practitioner (CLF-C02), AWS Solutions Architect Associate (SAA-C03), Azure Fundamentals (AZ-900), Azure Administrator (AZ-104), Google Cloud Digital Leader (programme d'août 2026) |
+| Permis | Code de la route voiture (ETG : 10 thèmes officiels + 60 panneaux dessinés), Code de la route moto (ETM) |
+| Réseau et systèmes | CCNA 200-301 (cartes S01 à S18), Linux Essentials (010-160) |
+| Sécurité et méthodes | CompTIA Security+ (SY0-701 / SY0-801), ITIL Foundation (ITIL 4 et Version 5), Scrum PSM I (Guide 2020) |
+| Vie pratique | Premiers secours (PSC1, notes SST) |
+
+- **Mise à jour** : réajouter un module (« Mettre à jour » / « Compléter ») ajoute les cartes nouvelles et corrige celles que vous
+  n'avez jamais modifiées ; une carte que vous avez modifiée n'est plus touchée, et rien n'est supprimé.
+- **Hors ligne** : le contenu des modules est précaché ; un module ajouté se synchronise comme vos autres cartes.
+- **Ajouter ou corriger un module** : un fichier par module dans `src/modules/data/`, ses métadonnées dans `src/modules/catalog.ts` ;
+  `npm test` vérifie chaque carte et indique les compteurs exacts à reporter dans le catalogue.
+- Le contenu est rédigé pour Rappel d'après les programmes publiés : en cas de doute, vérifiez dans un cours officiel.
+
 ## Format des imports
 
 **CSV** — séparateur `;`, une carte par ligne, première ligne d'en-tête facultative :
@@ -156,7 +180,8 @@ src/
     notes.ts decks.ts cloze.ts render.ts search.ts typed.ts
     csv.ts backup.ts autobackup.ts apkg.ts stats.ts media.ts markdown.ts
     storage.ts errors.ts download.ts theme.ts
-  pages/           écrans (Paquets, Étude, Éditeur, Parcourir, Stats, Réglages)
+  pages/           écrans (Paquets, Modules, Étude, Éditeur, Parcourir, Stats, Réglages)
+  modules/         catalogue des modules, contenu (data/, un fichier par module), panneaux SVG (signs.ts)
   components/      Markdown (assaini avec DOMPurify), dialogues accessibles, bandeau de sauvegarde,
                    sécurité des données, écran d'erreur, icônes
 e2e/               tests de bout en bout Playwright (desktop, iPhone, Android, GitHub Pages)

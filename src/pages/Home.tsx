@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo, useState } from 'react'
 import { BackupReminder } from '../components/BackupReminder'
-import { IconChevron, IconMore, IconPlus } from '../components/icons'
+import { IconBook, IconChevron, IconMore, IconPlus } from '../components/icons'
 import { askConfirm, askText, showMenu, toast } from '../components/ui'
 import { db, getSettings } from '../db'
 import { buildTree, createDeck, deleteDeck, flattenTree, moveDeck, renameDeck, type DeckNode } from '../lib/decks'
@@ -126,8 +126,14 @@ export function Home() {
       {decks.length === 0 ? (
         <div className="empty card">
           <h2>Bienvenue dans Rappel</h2>
-          <p>Créez votre premier paquet pour commencer à ajouter des cartes, ou importez un fichier CSV / une sauvegarde dans les Réglages.</p>
-          <button className="btn primary" onClick={() => newDeck()}><IconPlus />Créer un paquet</button>
+          <p>
+            Commencez avec un module prêt à réviser (cloud, code de la route, réseau, sécurité, premiers secours…),
+            créez votre propre paquet, ou importez un fichier CSV / une sauvegarde dans les Réglages.
+          </p>
+          <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a className="btn primary" href={href('/library')}><IconBook />Choisir un module</a>
+            <button className="btn" onClick={() => newDeck()}><IconPlus />Créer un paquet</button>
+          </div>
         </div>
       ) : (
         <>

@@ -24,6 +24,7 @@ for (const theme of ['dark', 'light'] as const) {
       await seed(page, DECK)
       for (const [label, path] of [
         ['paquets', '/#/'],
+        ['modules', '/#/library'],
         ['parcourir', '/#/browse'],
         ['nouvelle carte', '/#/new'],
         ['statistiques', '/#/stats'],

@@ -21,3 +21,5 @@ export const IconMore = make(<><circle cx="12" cy="5" r="1.2" /><circle cx="12" 
 export const IconUndo = make(<><path d="M9 14 4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-3" /></>)
 export const IconKeyboard = make(<><rect x="2" y="6" width="20" height="12" rx="2" /><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" /></>)
 export const IconX = make(<path d="M18 6 6 18M6 6l12 12" />)
+export const IconBook = make(<><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z" /><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" /></>)
+export const IconCheck = make(<path d="M20 6 9 17l-5-5" />)

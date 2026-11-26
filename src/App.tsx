@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { db, getSettings } from './db'
 import { ErrorBoundary, ErrorScreen } from './components/ErrorScreen'
-import { IconChart, IconDecks, IconSearch, IconSettings } from './components/icons'
+import { IconBook, IconChart, IconDecks, IconSearch, IconSettings } from './components/icons'
 import { DialogHost, toast } from './components/ui'
 import { friendlyError } from './lib/errors'
 import { applyTheme } from './lib/theme'
@@ -15,8 +15,10 @@ const Browse = lazy(() => import('./pages/Browse').then((m) => ({ default: m.Bro
 const NoteEditor = lazy(() => import('./pages/NoteEditor').then((m) => ({ default: m.NoteEditor })))
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 const Stats = lazy(() => import('./pages/Stats').then((m) => ({ default: m.Stats })))
+const Library = lazy(() => import('./pages/Library').then((m) => ({ default: m.Library })))
 
 const TITLES: Record<string, string> = {
+  library: 'Modules',
   browse: 'Parcourir',
   new: 'Nouvelle carte',
   edit: 'Modifier la carte',
@@ -83,6 +85,9 @@ export default function App() {
     case 'stats':
       page = <Stats />
       break
+    case 'library':
+      page = <Library />
+      break
     case 'settings':
       page = <SettingsPage />
       break
@@ -111,6 +116,7 @@ export default function App() {
         <nav className="nav" aria-label="Navigation principale">
           <div className="brand"><img src="icon.svg" alt="" />Rappel</div>
           <a href={href('/')} className={current('decks') ? 'active' : ''} aria-current={current('decks')}><IconDecks />Paquets</a>
+          <a href={href('/library')} className={current('library') ? 'active' : ''} aria-current={current('library')}><IconBook />Modules</a>
           <a href={href('/browse')} className={current('browse') ? 'active' : ''} aria-current={current('browse')}><IconSearch />Parcourir</a>
           <a href={href('/stats')} className={current('stats') ? 'active' : ''} aria-current={current('stats')}><IconChart />Stats</a>
           <a href={href('/settings')} className={current('settings') ? 'active' : ''} aria-current={current('settings')}><IconSettings />Réglages</a>
