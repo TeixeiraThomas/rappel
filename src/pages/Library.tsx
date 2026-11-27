@@ -257,6 +257,7 @@ function ModuleCard({ meta, progress, perDay }: { meta: ModuleMeta; progress: Pr
         <h3 id={headingId}>{meta.title}</h3>
         <span className="chip">{meta.version}</span>
       </div>
+      {meta.highlight && <p className="module-highlight">{meta.highlight}</p>}
       <p className="module-desc">{meta.description}</p>
       <p className="muted small module-meta">
         <span className={`level level-${meta.level}`}>{levelLabel(meta.level)}</span> · {plural(meta.cards, 'carte', 'cartes')}

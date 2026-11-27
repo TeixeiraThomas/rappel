@@ -20,7 +20,7 @@ export interface ModuleContent {
   chapters: ModuleChapter[]
 }
 
-export type ModuleCategory = 'cloud' | 'reseau' | 'systemes' | 'securite' | 'gestion' | 'permis' | 'vie'
+export type ModuleCategory = 'permis' | 'langues' | 'cloud' | 'reseau' | 'systemes' | 'securite' | 'gestion' | 'vie'
 
 /** Niveau visé : aide à choisir par où commencer. */
 export type ModuleLevel = 'debutant' | 'intermediaire' | 'avance'
@@ -34,6 +34,8 @@ export interface ModuleMeta {
   deckName: string
   category: ModuleCategory
   level: ModuleLevel
+  /** Badge mis en avant dans la bibliothèque (ex. « Le plus demandé »). */
+  highlight?: string
   /** Une ou deux phrases : pour qui, quoi. */
   description: string
   /** Version du programme visée (ex. « CLF-C02 »). */

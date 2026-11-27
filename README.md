@@ -7,10 +7,10 @@ synchronise entre PC et téléphone.
 
 ## Fonctionnalités
 
-- **Modules prêts à réviser** (écran « Modules ») : AWS Cloud Practitioner et Solutions Architect Associate, Azure AZ-900 et AZ-104,
+- **Modules prêts à réviser** (écran « Modules ») : AWS Cloud Practitioner et Solutions Architect Associate, Azure AZ-900 et AZ-104, TOEIC (anglais professionnel),
   Google Cloud Digital Leader, Code de la route voiture (avec panneaux dessinés) et moto, CCNA, Linux Essentials, CompTIA Security+,
   ITIL Foundation, Scrum PSM I, Premiers secours — environ 2 600 cartes, un sous-paquet par chapitre du programme. Rangés en
-  7 catégories, filtrables par niveau, « Mes modules » / « À découvrir » et par recherche ; ajout du module entier ou chapitre
+  8 catégories (du plus demandé au moins demandé : permis, puis langues), filtrables par niveau, « Mes modules » / « À découvrir » et par recherche ; ajout du module entier ou chapitre
   par chapitre, avancement par module et par chapitre, retrait en un geste. Détails plus bas.
 - **Paquets et sous-paquets** (arbre repliable), **tags**, **recherche** (`mot`, `"phrase"`, `tag:cisco`, `deck:réseau`, `type:cloze`).
 - **Cartes** : recto/verso, recto/verso + inverse, texte à trous (`{{c1::réponse::indice}}`), Markdown, blocs de code avec bouton « Copier », images (import ou collage).
@@ -141,12 +141,13 @@ les cartes arrivent dans l'ordre du programme, au rythme du réglage « nouvelle
 
 | Catégorie | Modules (version visée, niveau) |
 |---|---|
+| Permis de conduire | Code de la route voiture (ETG : 10 thèmes officiels + 60 panneaux dessinés, badge « Le plus demandé »), Code de la route moto (ETM) |
+| Langues | TOEIC (Listening and Reading / 4 compétences, intermédiaire) : format de l'examen, vocabulaire professionnel par thème, faux amis, grammaire de la partie 5, verbes à particule |
 | Cloud | AWS Cloud Practitioner (CLF-C02, débutant), AWS Solutions Architect Associate (SAA-C03, intermédiaire), Azure Fundamentals (AZ-900, débutant), Azure Administrator (AZ-104, intermédiaire), Google Cloud Digital Leader (programme d'août 2026, débutant) |
 | Réseau | CCNA 200-301 (cartes S01 à S18, intermédiaire) |
 | Systèmes | Linux Essentials (010-160, débutant) |
 | Cybersécurité | CompTIA Security+ (SY0-701 / SY0-801, intermédiaire) |
 | Gestion de projet et services | ITIL Foundation (ITIL 4 et Version 5, débutant), Scrum PSM I (Guide 2020, débutant) |
-| Permis de conduire | Code de la route voiture (ETG : 10 thèmes officiels + 60 panneaux dessinés), Code de la route moto (ETM) |
 | Vie pratique | Premiers secours (PSC1, notes SST) |
 
 - **Trouver un module** : filtres « Tous / Mes modules / À découvrir », par catégorie (avec le nombre de modules) et par niveau,

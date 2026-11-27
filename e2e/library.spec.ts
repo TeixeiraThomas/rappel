@@ -69,7 +69,18 @@ test.describe('Modules prêts à l’emploi', () => {
     await page.getByRole('searchbox', { name: 'Rechercher un module' }).fill('introuvable')
     await expect(page.getByText('Aucun module ne correspond')).toBeVisible()
     await page.getByRole('button', { name: 'Effacer les filtres' }).click()
-    await expect(page.getByRole('article')).toHaveCount(13)
+    await expect(page.getByRole('article')).toHaveCount(14)
+  })
+
+  test('le plus demandé d’abord : permis en tête, badge et module TOEIC', async ({ page }) => {
+    await openApp(page, '/#/library')
+    await expect(page.locator('.lib-cat > h2').first()).toContainText('Permis de conduire')
+    const auto = page.getByRole('article', { name: 'Code de la route — voiture' })
+    await expect(auto.getByText('Le plus demandé')).toBeVisible()
+    await page.getByRole('button', { name: /^Langues/ }).click()
+    const toeic = page.getByRole('article', { name: 'TOEIC — anglais professionnel' })
+    await toeic.getByRole('button', { name: 'Ajouter TOEIC — anglais professionnel' }).click()
+    await expect(page.getByRole('status')).toContainText('« TOEIC » ajouté : 229 cartes')
   })
 
   test('ajouter un chapitre, suivre l’avancement, compléter puis retirer le module', async ({ page }) => {

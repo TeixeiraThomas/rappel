@@ -4,13 +4,16 @@ import type { ModuleCategory, ModuleLevel, ModuleMeta } from './types'
 // le contenu de chaque module est un fichier séparé, téléchargé (et précaché hors ligne) à la demande.
 // Les compteurs `notes` / `cards` sont vérifiés par src/modules/modules.test.ts.
 
+// Ordre d'affichage : du plus demandé au moins demandé (permis puis langues : premières formations
+// financées par le CPF en 2025, voir DECISIONS.md).
 export const CATEGORIES: { id: ModuleCategory; label: string }[] = [
+  { id: 'permis', label: 'Permis de conduire' },
+  { id: 'langues', label: 'Langues' },
   { id: 'cloud', label: 'Cloud' },
   { id: 'reseau', label: 'Réseau' },
   { id: 'systemes', label: 'Systèmes' },
   { id: 'securite', label: 'Cybersécurité' },
   { id: 'gestion', label: 'Gestion de projet et services' },
-  { id: 'permis', label: 'Permis de conduire' },
   { id: 'vie', label: 'Vie pratique' },
 ]
 
@@ -121,6 +124,7 @@ export const MODULES: ModuleMeta[] = [
     deckName: 'Code de la route (auto)',
     category: 'permis',
     level: 'debutant',
+    highlight: 'Le plus demandé',
     description:
       "L'examen théorique général (ETG) du permis B : les 10 thèmes officiels, les panneaux, les vitesses, les distances, l'alcool, les premiers secours.",
     version: 'ETG',
@@ -259,6 +263,25 @@ export const MODULES: ModuleMeta[] = [
     notes: 81,
     cards: 81,
     load: () => import('./data/premiers-secours').then((m) => m.default),
+  },
+  {
+    id: 'toeic',
+    title: 'TOEIC — anglais professionnel',
+    deckName: 'TOEIC',
+    category: 'langues',
+    level: 'intermediaire',
+    description:
+      "Le vocabulaire de l'anglais professionnel par thème (bureau, RH, finance, voyages, commerce), les faux amis, la grammaire de la partie 5 et les verbes à particule, plus le format de l'examen.",
+    version: 'L&R · 4 compétences',
+    exam: [
+      { label: 'Questions', value: '200 (Listening and Reading), questionnaire à choix multiples' },
+      { label: 'Durée', value: '2 h (45 min d’écoute, 75 min de lecture)' },
+      { label: 'Score', value: '10 à 990 ; environ 785 pour B2' },
+      { label: 'CPF', value: 'Version 4 compétences (avec expression orale et écrite)' },
+    ],
+    notes: 229,
+    cards: 231,
+    load: () => import('./data/toeic').then((m) => m.default),
   },
 ]
 
