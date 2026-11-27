@@ -9,7 +9,7 @@ synchronise entre PC et téléphone.
 
 - **Modules prêts à réviser** (écran « Modules ») : AWS Cloud Practitioner et Solutions Architect Associate, Azure AZ-900 et AZ-104, TOEIC (anglais professionnel),
   Google Cloud Digital Leader, Code de la route voiture (avec panneaux dessinés) et moto, CCNA, Linux Essentials, CompTIA Security+,
-  ITIL Foundation, Scrum PSM I, Premiers secours — environ 2 600 cartes, un sous-paquet par chapitre du programme. Rangés en
+  ITIL Foundation, Scrum PSM I, Premiers secours — environ 2 800 cartes, un sous-paquet par chapitre du programme. Rangés en
   8 catégories (du plus demandé au moins demandé : permis, puis langues), filtrables par niveau, « Mes modules » / « À découvrir » et par recherche ; ajout du module entier ou chapitre
   par chapitre, avancement par module et par chapitre, retrait en un geste. Détails plus bas.
 - **Paquets et sous-paquets** (arbre repliable), **tags**, **recherche** (`mot`, `"phrase"`, `tag:cisco`, `deck:réseau`, `type:cloze`).
