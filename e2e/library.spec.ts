@@ -39,7 +39,7 @@ test.describe('Modules prêts à l’emploi', () => {
     await page.getByRole('button', { name: 'Permis de conduire' }).click()
     await expect(page.getByRole('article')).toHaveCount(2)
     const auto = page.getByRole('article', { name: 'Code de la route — voiture' })
-    await auto.getByText('Programme et examen').click()
+    await auto.getByText('Programme, chapitres et examen').click()
     await expect(auto.getByText('35 bonnes réponses sur 40')).toBeVisible()
     await expect(auto.getByRole('listitem').first()).toContainText('Panneaux de danger')
   })
@@ -53,5 +53,49 @@ test.describe('Modules prêts à l’emploi', () => {
     await page.getByText('Virage à droite', { exact: true }).click()
     await page.getByRole('button', { name: 'Aperçu' }).click()
     await expect(page.locator('.preview svg.sign').first()).toBeVisible()
+  })
+
+  test('nouvelles catégories, niveau et recherche', async ({ page }) => {
+    await openApp(page, '/#/library')
+    await page.getByRole('button', { name: /^Gestion de projet et services/ }).click()
+    await expect(page.getByRole('article')).toHaveCount(2)
+    await page.getByRole('button', { name: /^Toutes catégories/ }).click()
+    await page.getByRole('button', { name: 'Intermédiaire' }).click()
+    await expect(page.getByRole('article', { name: 'Microsoft Azure Administrator' })).toBeVisible()
+    await expect(page.getByRole('article', { name: 'Microsoft Azure Fundamentals' })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Tous niveaux' }).click()
+    await page.getByRole('searchbox', { name: 'Rechercher un module' }).fill('az-104')
+    await expect(page.getByRole('article')).toHaveCount(1)
+    await page.getByRole('searchbox', { name: 'Rechercher un module' }).fill('introuvable')
+    await expect(page.getByText('Aucun module ne correspond')).toBeVisible()
+    await page.getByRole('button', { name: 'Effacer les filtres' }).click()
+    await expect(page.getByRole('article')).toHaveCount(13)
+  })
+
+  test('ajouter un chapitre, suivre l’avancement, compléter puis retirer le module', async ({ page }) => {
+    await openApp(page, '/#/library')
+    const card = page.getByRole('article', { name: 'Scrum — Professional Scrum Master I' })
+    await card.getByText('Programme, chapitres et examen').click()
+    await card.getByRole('button', { name: 'Ajouter le chapitre « Théorie et valeurs »' }).click()
+    await expect(page.getByRole('status')).toContainText('Chapitre « Théorie et valeurs » ajouté')
+    await expect(card.getByText(/^Ajouté en partie \(1\/\d+ chapitres\)$/)).toBeVisible()
+    await expect(card.getByRole('progressbar', { name: 'Avancement de Scrum — Professional Scrum Master I' })).toBeVisible()
+    await expect(card.getByRole('button', { name: 'Étudier le chapitre « Théorie et valeurs »' })).toBeVisible()
+
+    // « Mes modules » ne montre que les modules ajoutés.
+    await page.getByRole('button', { name: 'Mes modules (1)' }).click()
+    await expect(page.getByRole('article')).toHaveCount(1)
+
+    await card.getByRole('button', { name: /^Compléter \(\+\d+\)$/ }).click()
+    await expect(card.getByText('Ajouté', { exact: true })).toBeVisible()
+    const all = (await readTable(page, 'notes')).length
+    expect(all).toBe(91)
+
+    await card.getByRole('button', { name: 'Retirer Scrum — Professional Scrum Master I' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Retirer' }).click()
+    await expect(page.getByRole('status')).toContainText('Module retiré : 91 notes supprimées')
+    expect(await readTable(page, 'notes')).toHaveLength(0)
+    expect(await readTable(page, 'decks')).toHaveLength(0)
+    await expect(page.getByText("Vous n'avez encore ajouté aucun module.")).toBeVisible()
   })
 })

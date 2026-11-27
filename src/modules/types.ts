@@ -20,7 +20,10 @@ export interface ModuleContent {
   chapters: ModuleChapter[]
 }
 
-export type ModuleCategory = 'cloud' | 'permis' | 'reseau' | 'securite' | 'vie'
+export type ModuleCategory = 'cloud' | 'reseau' | 'systemes' | 'securite' | 'gestion' | 'permis' | 'vie'
+
+/** Niveau visé : aide à choisir par où commencer. */
+export type ModuleLevel = 'debutant' | 'intermediaire' | 'avance'
 
 export interface ModuleMeta {
   /** Identifiant stable (sert aussi de tag à toutes les cartes du module). */
@@ -30,6 +33,7 @@ export interface ModuleMeta {
   /** Nom du paquet racine créé à l'ajout. */
   deckName: string
   category: ModuleCategory
+  level: ModuleLevel
   /** Une ou deux phrases : pour qui, quoi. */
   description: string
   /** Version du programme visée (ex. « CLF-C02 »). */

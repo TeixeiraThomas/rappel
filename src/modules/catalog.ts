@@ -1,4 +1,4 @@
-import type { ModuleCategory, ModuleMeta } from './types'
+import type { ModuleCategory, ModuleLevel, ModuleMeta } from './types'
 
 // Catalogue des modules prêts à l'emploi. Seules ces métadonnées sont chargées avec l'écran « Modules » :
 // le contenu de chaque module est un fichier séparé, téléchargé (et précaché hors ligne) à la demande.
@@ -6,10 +6,18 @@ import type { ModuleCategory, ModuleMeta } from './types'
 
 export const CATEGORIES: { id: ModuleCategory; label: string }[] = [
   { id: 'cloud', label: 'Cloud' },
+  { id: 'reseau', label: 'Réseau' },
+  { id: 'systemes', label: 'Systèmes' },
+  { id: 'securite', label: 'Cybersécurité' },
+  { id: 'gestion', label: 'Gestion de projet et services' },
   { id: 'permis', label: 'Permis de conduire' },
-  { id: 'reseau', label: 'Réseau et systèmes' },
-  { id: 'securite', label: 'Sécurité et méthodes' },
   { id: 'vie', label: 'Vie pratique' },
+]
+
+export const LEVELS: { id: ModuleLevel; label: string }[] = [
+  { id: 'debutant', label: 'Débutant' },
+  { id: 'intermediaire', label: 'Intermédiaire' },
+  { id: 'avance', label: 'Avancé' },
 ]
 
 export const MODULES: ModuleMeta[] = [
@@ -18,6 +26,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'AWS Certified Cloud Practitioner',
     deckName: 'AWS Cloud Practitioner (CLF-C02)',
     category: 'cloud',
+    level: 'debutant',
     description:
       "La certification d'entrée AWS : concepts du cloud, sécurité, services principaux, facturation et support. Idéale pour débuter, technique ou non.",
     version: 'CLF-C02',
@@ -36,6 +45,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'AWS Certified Solutions Architect – Associate',
     deckName: 'AWS Solutions Architect Associate (SAA-C03)',
     category: 'cloud',
+    level: 'intermediaire',
     description:
       'Concevoir des architectures AWS sécurisées, résilientes, performantes et économiques : VPC, EC2, stockage, bases de données, découplage, haute disponibilité.',
     version: 'SAA-C03',
@@ -54,6 +64,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Microsoft Azure Fundamentals',
     deckName: 'Azure Fundamentals (AZ-900)',
     category: 'cloud',
+    level: 'debutant',
     description:
       "Les bases d'Azure : modèles de cloud, régions et zones, calcul, réseau, stockage, identité (Entra ID), gouvernance et coûts.",
     version: 'AZ-900',
@@ -72,6 +83,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Microsoft Azure Administrator',
     deckName: 'Azure Administrator (AZ-104)',
     category: 'cloud',
+    level: 'intermediaire',
     description:
       'Administrer Azure au quotidien : identités et RBAC, Azure Policy, stockage, machines virtuelles, conteneurs, réseaux virtuels, supervision et sauvegarde.',
     version: 'AZ-104',
@@ -90,6 +102,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Google Cloud Digital Leader',
     deckName: 'Google Cloud Digital Leader',
     category: 'cloud',
+    level: 'debutant',
     description:
       'La certification fondamentale de Google Cloud : transformation numérique, données, IA, modernisation des applications, sécurité et opérations.',
     version: "Programme d'août 2026",
@@ -107,6 +120,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Code de la route — voiture',
     deckName: 'Code de la route (auto)',
     category: 'permis',
+    level: 'debutant',
     description:
       "L'examen théorique général (ETG) du permis B : les 10 thèmes officiels, les panneaux, les vitesses, les distances, l'alcool, les premiers secours.",
     version: 'ETG',
@@ -125,6 +139,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Code de la route — moto',
     deckName: 'Code de la route (moto)',
     category: 'permis',
+    level: 'debutant',
     description:
       "L'épreuve théorique moto (ETM) des permis A1, A2 et A : équipement, trajectoires, freinage, visibilité, inter-files, passager. À compléter avec le module voiture pour les règles communes.",
     version: 'ETM',
@@ -142,6 +157,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Cisco CCNA',
     deckName: 'CCNA 200-301',
     category: 'reseau',
+    level: 'intermediaire',
     description:
       'Le programme CCNA en 18 semaines : modèle OSI, IPv4/IPv6 et sous-réseaux, VLAN, STP, OSPF, ACL, NAT, sécurité, Wi-Fi, automatisation.',
     version: '200-301',
@@ -158,7 +174,8 @@ export const MODULES: ModuleMeta[] = [
     id: 'linux-essentials',
     title: 'Linux Essentials (LPI)',
     deckName: 'Linux Essentials (010-160)',
-    category: 'reseau',
+    category: 'systemes',
+    level: 'debutant',
     description:
       'Bien démarrer sous Linux : distributions et licences libres, ligne de commande, fichiers, scripts, processus, utilisateurs et permissions.',
     version: '010-160 v1.6',
@@ -176,6 +193,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'CompTIA Security+',
     deckName: 'CompTIA Security+',
     category: 'securite',
+    level: 'intermediaire',
     description:
       'La référence de la cybersécurité de base : menaces et attaques, cryptographie, architecture, opérations de sécurité, gestion des risques et conformité.',
     version: 'SY0-701 / SY0-801',
@@ -193,7 +211,8 @@ export const MODULES: ModuleMeta[] = [
     id: 'itil',
     title: 'ITIL Foundation',
     deckName: 'ITIL Foundation',
-    category: 'securite',
+    category: 'gestion',
+    level: 'debutant',
     description:
       'La gestion des services numériques : valeur et co-création, 4 dimensions, principes directeurs, système de valeur, cycle de vie, pratiques clés. Couvre ITIL 4 et ITIL (Version 5).',
     version: 'ITIL 4 / Version 5',
@@ -210,7 +229,8 @@ export const MODULES: ModuleMeta[] = [
     id: 'scrum-psm1',
     title: 'Scrum — Professional Scrum Master I',
     deckName: 'Scrum (PSM I)',
-    category: 'securite',
+    category: 'gestion',
+    level: 'debutant',
     description:
       'Le Guide Scrum 2020 en détail : piliers, valeurs, responsabilités, événements, artefacts et engagements, plus les pièges classiques de l’examen.',
     version: 'Guide Scrum 2020',
@@ -228,6 +248,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Premiers secours',
     deckName: 'Premiers secours (PSC1)',
     category: 'vie',
+    level: 'debutant',
     description:
       'Les gestes qui sauvent : protéger, alerter, étouffement, hémorragie, perte de connaissance, arrêt cardiaque et défibrillateur, malaises et traumatismes.',
     version: 'PSC1 / SST',
