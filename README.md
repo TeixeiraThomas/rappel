@@ -7,10 +7,10 @@ synchronise entre PC et téléphone.
 
 ## Fonctionnalités
 
-- **Modules prêts à réviser** (écran « Modules ») : AWS Cloud Practitioner et Solutions Architect Associate, Azure AZ-900 et AZ-104, TOEIC (anglais professionnel),
+- **Modules prêts à réviser** (écran « Modules ») : AWS Cloud Practitioner et Solutions Architect Associate, Azure AZ-900 et AZ-104, TOEIC (anglais professionnel), permis bateau côtier, Pix, TOSA Excel,
   Google Cloud Digital Leader, Code de la route voiture (avec panneaux dessinés) et moto, CCNA, Linux Essentials, CompTIA Security+,
-  ITIL Foundation, Scrum PSM I, Premiers secours — environ 2 800 cartes, un sous-paquet par chapitre du programme. Rangés en
-  5 domaines et 10 sous-catégories (du plus demandé au moins demandé : permis, puis langues), filtrables par niveau, « Mes modules » / « À découvrir » et par recherche ; ajout du module entier ou chapitre
+  ITIL Foundation, Scrum PSM I, Premiers secours — environ 3 000 cartes, un sous-paquet par chapitre du programme. Rangés en
+  5 domaines et 12 sous-catégories (du plus demandé au moins demandé : permis, puis langues), filtrables par niveau, « Mes modules » / « À découvrir » et par recherche ; ajout du module entier ou chapitre
   par chapitre, avancement par module et par chapitre, retrait en un geste. Détails plus bas.
 - **Paquets et sous-paquets** (arbre repliable), **tags**, **recherche** (`mot`, `"phrase"`, `tag:cisco`, `deck:réseau`, `type:cloze`).
 - **Cartes** : recto/verso, recto/verso + inverse, texte à trous (`{{c1::réponse::indice}}`), Markdown, blocs de code avec bouton « Copier », images (import ou collage).
@@ -143,7 +143,9 @@ les cartes arrivent dans l'ordre du programme, au rythme du réglage « nouvelle
 |---|---|
 | Permis de conduire › Voiture (permis B) | Code de la route voiture (ETG : 10 thèmes officiels + 60 panneaux dessinés, badge « Le plus demandé ») |
 | Permis de conduire › Moto (permis A) | Code de la route moto (ETM) |
+| Permis de conduire › Bateau (permis plaisance) | Permis bateau option côtière (balisage, règles de barre, feux, signaux et VHF, sécurité, météo et marées) |
 | Langues › Anglais | TOEIC (Listening and Reading / 4 compétences, intermédiaire) : format de l'examen, vocabulaire professionnel par thème, faux amis, grammaire de la partie 5, verbes à particule |
+| Informatique › Bureautique et numérique | Pix (référentiel de 5 domaines et 16 compétences, débutant), TOSA Excel (formules, fonctions, tableaux croisés dynamiques, intermédiaire) |
 | Informatique › Cloud | AWS Cloud Practitioner (CLF-C02, débutant), AWS Solutions Architect Associate (SAA-C03, intermédiaire), Azure Fundamentals (AZ-900, débutant), Azure Administrator (AZ-104, intermédiaire), Google Cloud Digital Leader (programme d'août 2026, débutant) |
 | Informatique › Réseau | CCNA 200-301 (cartes S01 à S18, intermédiaire) |
 | Informatique › Systèmes | Linux Essentials (010-160, débutant) |

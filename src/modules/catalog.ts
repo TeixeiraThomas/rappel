@@ -17,7 +17,9 @@ export const DOMAINS: { id: ModuleDomain; label: string }[] = [
 export const CATEGORIES: { id: ModuleCategory; domain: ModuleDomain; label: string }[] = [
   { id: 'auto', domain: 'permis', label: 'Voiture (permis B)' },
   { id: 'moto', domain: 'permis', label: 'Moto (permis A)' },
+  { id: 'bateau', domain: 'permis', label: 'Bateau (permis plaisance)' },
   { id: 'anglais', domain: 'langues', label: 'Anglais' },
+  { id: 'bureautique', domain: 'informatique', label: 'Bureautique et numérique' },
   { id: 'cloud', domain: 'informatique', label: 'Cloud' },
   { id: 'reseau', domain: 'informatique', label: 'Réseau' },
   { id: 'systemes', domain: 'informatique', label: 'Systèmes' },
@@ -295,6 +297,59 @@ export const MODULES: ModuleMeta[] = [
     notes: 229,
     cards: 231,
     load: () => import('./data/toeic').then((m) => m.default),
+  },
+  {
+    id: 'permis-cotier',
+    title: 'Permis bateau — option côtière',
+    deckName: 'Permis bateau côtier',
+    category: 'bateau',
+    level: 'debutant',
+    description:
+      'Le permis plaisance en mer : balisage, règles de barre, feux des navires, signaux et VHF, sécurité, réglementation, météo et marées.',
+    version: 'Option côtière',
+    exam: [
+      { label: 'Questions', value: '30 (QCM), 5 fautes au maximum' },
+      { label: 'Formation', value: 'Au moins 5 h de théorie et 3 h 30 de pratique' },
+      { label: 'Zone', value: 'Jusqu’à 6 milles d’un abri ; obligatoire au-delà de 6 CV' },
+    ],
+    notes: 104,
+    cards: 104,
+    load: () => import('./data/permis-cotier').then((m) => m.default),
+  },
+  {
+    id: 'pix',
+    title: 'Pix — compétences numériques',
+    deckName: 'Pix',
+    category: 'bureautique',
+    level: 'debutant',
+    description:
+      'Les 5 domaines et 16 compétences du référentiel Pix : recherche d’information, communication, création de contenus, sécurité et vie privée, environnement numérique.',
+    version: 'Référentiel Pix',
+    exam: [
+      { label: 'Format', value: 'Questions adaptatives en ligne ; certification surveillée en centre agréé' },
+      { label: 'Score', value: 'En pix, par compétence et au total' },
+    ],
+    notes: 64,
+    cards: 64,
+    load: () => import('./data/pix').then((m) => m.default),
+  },
+  {
+    id: 'tosa-excel',
+    title: 'TOSA Excel',
+    deckName: 'TOSA Excel',
+    category: 'bureautique',
+    level: 'intermediaire',
+    description:
+      'Excel pour la certification TOSA : navigation et raccourcis, mise en forme, formules et références, fonctions (SI, RECHERCHEV, SOMME.SI.ENS…), tris, filtres, tableaux croisés dynamiques et graphiques.',
+    version: 'TOSA',
+    exam: [
+      { label: 'Questions', value: '35, QCM et exercices pratiques, test adaptatif' },
+      { label: 'Durée', value: '60 min' },
+      { label: 'Score', value: '1 à 1 000 ; opérationnel de 551 à 725' },
+    ],
+    notes: 71,
+    cards: 71,
+    load: () => import('./data/tosa-excel').then((m) => m.default),
   },
 ]
 

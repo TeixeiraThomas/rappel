@@ -378,7 +378,7 @@ main:focus { outline: none; }
 .lib-owned { flex: 1 1 320px; min-width: 0; }
 .lib-owned button { padding: 4px 8px; line-height: 1.2; min-width: 0; } /* les libellés passent à la ligne sur petit écran */
 .lib-search { flex: 1 1 200px; min-width: 0; }
-.chip-count { opacity: 0.75; margin-left: 2px; font-variant-numeric: tabular-nums; }
+.chip-count { margin-left: 2px; font-weight: 400; font-variant-numeric: tabular-nums; } /* pas d'opacité réduite sur du texte (décision 50) */
 .lib-filters + .lib-filters { margin-top: 0; }
 .lib-cat-count { font-variant-numeric: tabular-nums; margin-left: 4px; }
 .level { font-weight: 600; }
