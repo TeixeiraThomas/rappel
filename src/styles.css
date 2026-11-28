@@ -345,11 +345,13 @@ main:focus { outline: none; }
 .chip.on { background: var(--accent-bg); color: var(--accent-ink); }
 .lib-filters { margin: 14px 0 6px; }
 .lib-filters .chip { min-height: 32px; padding: 4px 12px; font-size: 0.85rem; white-space: nowrap; }
-.lib-cat { margin-top: 18px; }
-.lib-cat > h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 8px 2px; }
+.lib-cat { margin-top: 26px; }
+.lib-cat > h2 { font-size: 1.2rem; margin: 0 0 4px 2px; }
+.lib-subcat { margin-top: 10px; }
+.lib-subcat > h3 { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 8px 2px; }
 .module { padding: 14px 16px; margin-bottom: 12px; }
 .module-head { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
-.module-head h3 { font-size: 1.05rem; line-height: 1.3; }
+.module-head h4 { font-size: 1.05rem; line-height: 1.3; margin: 0; }
 .module-head .chip { flex: none; max-width: 45%; text-align: center; overflow-wrap: anywhere; } /* une version longue passe à la ligne au lieu d'élargir la page */
 .module-desc { margin: 6px 0 4px; }
 .module-meta { margin: 0 0 8px; }

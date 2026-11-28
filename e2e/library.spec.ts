@@ -57,9 +57,9 @@ test.describe('Modules prêts à l’emploi', () => {
 
   test('nouvelles catégories, niveau et recherche', async ({ page }) => {
     await openApp(page, '/#/library')
-    await page.getByRole('button', { name: /^Gestion de projet et services/ }).click()
+    await page.getByRole('button', { name: /^Gestion et méthodes/ }).click()
     await expect(page.getByRole('article')).toHaveCount(2)
-    await page.getByRole('button', { name: /^Toutes catégories/ }).click()
+    await page.getByRole('button', { name: /^Tous les domaines/ }).click()
     await page.getByRole('button', { name: 'Intermédiaire' }).click()
     await expect(page.getByRole('article', { name: 'Microsoft Azure Administrator' })).toBeVisible()
     await expect(page.getByRole('article', { name: 'Microsoft Azure Fundamentals' })).toHaveCount(0)
@@ -70,6 +70,22 @@ test.describe('Modules prêts à l’emploi', () => {
     await expect(page.getByText('Aucun module ne correspond')).toBeVisible()
     await page.getByRole('button', { name: 'Effacer les filtres' }).click()
     await expect(page.getByRole('article')).toHaveCount(14)
+  })
+
+  test('domaines puis sous-catégories : Informatique › Cloud', async ({ page }) => {
+    await openApp(page, '/#/library')
+    // Les sous-catégories n'apparaissent qu'une fois un domaine choisi.
+    await expect(page.getByRole('group', { name: 'Filtrer par catégorie' })).toHaveCount(0)
+    await page.getByRole('button', { name: /^Informatique/ }).click()
+    await expect(page.getByRole('article')).toHaveCount(8)
+    await expect(page.getByRole('heading', { name: /^Réseau/, level: 3 })).toBeVisible()
+    await page.getByRole('group', { name: 'Filtrer par catégorie' }).getByRole('button', { name: /^Cloud/ }).click()
+    await expect(page.getByRole('article')).toHaveCount(5)
+    await expect(page.getByRole('heading', { name: /^Réseau/, level: 3 })).toHaveCount(0)
+    // Changer de domaine remet la sous-catégorie à zéro.
+    await page.getByRole('button', { name: /^Permis de conduire/ }).click()
+    await expect(page.getByRole('article')).toHaveCount(2)
+    await expect(page.getByRole('heading', { name: /^Voiture \(permis B\)/, level: 3 })).toBeVisible()
   })
 
   test('le plus demandé d’abord : permis en tête, badge et module TOEIC', async ({ page }) => {

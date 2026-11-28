@@ -20,7 +20,21 @@ export interface ModuleContent {
   chapters: ModuleChapter[]
 }
 
-export type ModuleCategory = 'permis' | 'langues' | 'cloud' | 'reseau' | 'systemes' | 'securite' | 'gestion' | 'vie'
+/** Grand domaine (premier niveau de classement dans la bibliothèque). */
+export type ModuleDomain = 'permis' | 'langues' | 'informatique' | 'gestion' | 'vie'
+
+/** Sous-catégorie, rattachée à un domaine dans le catalogue (CATEGORIES). */
+export type ModuleCategory =
+  | 'auto'
+  | 'moto'
+  | 'anglais'
+  | 'cloud'
+  | 'reseau'
+  | 'systemes'
+  | 'securite'
+  | 'projet'
+  | 'services'
+  | 'secourisme'
 
 /** Niveau visé : aide à choisir par où commencer. */
 export type ModuleLevel = 'debutant' | 'intermediaire' | 'avance'

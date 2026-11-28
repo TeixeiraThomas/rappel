@@ -7,8 +7,8 @@ import { autoBackup } from '../lib/autobackup'
 import { friendlyError } from '../lib/errors'
 import { chaptersProgress, installModule, MASTERED_DAYS, moduleRootDeck, modulesProgress, removeModule, type Progress } from '../lib/library'
 import { fold } from '../lib/search'
-import { CATEGORIES, LEVELS, MODULES } from '../modules/catalog'
-import type { ModuleCategory, ModuleContent, ModuleLevel, ModuleMeta } from '../modules/types'
+import { CATEGORIES, DOMAINS, domainOf, LEVELS, MODULES } from '../modules/catalog'
+import type { ModuleCategory, ModuleContent, ModuleDomain, ModuleLevel, ModuleMeta } from '../modules/types'
 import { navigate } from '../router'
 
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString('fr-FR')} ${n > 1 ? many : one}`
@@ -28,6 +28,7 @@ type Owned = 'all' | 'mine' | 'new'
 const haystack = new Map(MODULES.map((m) => [m.id, fold(`${m.title} ${m.deckName} ${m.version} ${m.description}`)]))
 
 export function Library() {
+  const [domain, setDomain] = useState<ModuleDomain | 'all'>('all')
   const [category, setCategory] = useState<ModuleCategory | 'all'>('all')
   const [level, setLevel] = useState<ModuleLevel | 'all'>('all')
   const [owned, setOwned] = useState<Owned>('all')
@@ -46,9 +47,20 @@ export function Library() {
       (owned === 'all' || (owned === 'mine') === !!progress?.has(m.id)) &&
       terms.every((t) => haystack.get(m.id)!.includes(t)),
   )
-  const shown = CATEGORIES.filter((c) => category === 'all' || c.id === category)
-    .map((c) => ({ ...c, modules: visible.filter((m) => m.category === c.id) }))
-    .filter((c) => c.modules.length > 0)
+  // Domaines, puis sous-catégories, dans l'ordre du catalogue ; seuls ceux qui ont des modules à montrer.
+  const shown = DOMAINS.filter((d) => domain === 'all' || d.id === domain)
+    .map((d) => ({
+      ...d,
+      categories: CATEGORIES.filter((c) => c.domain === d.id && (category === 'all' || c.id === category))
+        .map((c) => ({ ...c, modules: visible.filter((m) => m.category === c.id) }))
+        .filter((c) => c.modules.length > 0),
+    }))
+    .filter((d) => d.categories.length > 0)
+  const subCategories = domain === 'all' ? [] : CATEGORIES.filter((c) => c.domain === domain && MODULES.some((m) => m.category === c.id))
+  const pickDomain = (d: ModuleDomain | 'all') => {
+    setDomain(d)
+    setCategory('all')
+  }
 
   const total = mine.reduce(
     (s, m) => {
@@ -57,8 +69,9 @@ export function Library() {
     },
     { due: 0, mastered: 0 },
   )
-  const filtered = category !== 'all' || level !== 'all' || owned !== 'all' || terms.length > 0
+  const filtered = domain !== 'all' || category !== 'all' || level !== 'all' || owned !== 'all' || terms.length > 0
   const clear = () => {
+    setDomain('all')
     setCategory('all')
     setLevel('all')
     setOwned('all')
@@ -109,20 +122,32 @@ export function Library() {
         />
       </div>
 
-      <div className="chips scroll lib-filters" role="group" aria-label="Filtrer par catégorie">
-        <button className={`chip${category === 'all' ? ' on' : ''}`} aria-pressed={category === 'all'} onClick={() => setCategory('all')}>
-          Toutes catégories
+      <div className="chips scroll lib-filters" role="group" aria-label="Filtrer par domaine">
+        <button className={`chip${domain === 'all' ? ' on' : ''}`} aria-pressed={domain === 'all'} onClick={() => pickDomain('all')}>
+          Tous les domaines
         </button>
-        {CATEGORIES.map((c) => {
-          const n = MODULES.filter((m) => m.category === c.id).length
+        {DOMAINS.map((d) => {
+          const n = MODULES.filter((m) => domainOf(m) === d.id).length
           if (!n) return null
           return (
-            <button key={c.id} className={`chip${category === c.id ? ' on' : ''}`} aria-pressed={category === c.id} onClick={() => setCategory(c.id)}>
-              {c.label} <span className="chip-count">{n}</span>
+            <button key={d.id} className={`chip${domain === d.id ? ' on' : ''}`} aria-pressed={domain === d.id} onClick={() => pickDomain(d.id)}>
+              {d.label} <span className="chip-count">{n}</span>
             </button>
           )
         })}
       </div>
+      {subCategories.length > 1 && (
+        <div className="chips scroll lib-filters lib-subfilters" role="group" aria-label="Filtrer par catégorie">
+          <button className={`chip${category === 'all' ? ' on' : ''}`} aria-pressed={category === 'all'} onClick={() => setCategory('all')}>
+            Toutes les catégories
+          </button>
+          {subCategories.map((c) => (
+            <button key={c.id} className={`chip${category === c.id ? ' on' : ''}`} aria-pressed={category === c.id} onClick={() => setCategory(c.id)}>
+              {c.label} <span className="chip-count">{MODULES.filter((m) => m.category === c.id).length}</span>
+            </button>
+          ))}
+        </div>
+      )}
       {levels.length > 1 && (
         <div className="chips scroll lib-filters" role="group" aria-label="Filtrer par niveau">
           <button className={`chip${level === 'all' ? ' on' : ''}`} aria-pressed={level === 'all'} onClick={() => setLevel('all')}>
@@ -148,18 +173,25 @@ export function Library() {
         </div>
       )}
 
-      {shown.map((cat) => (
-        <section key={cat.id} className="lib-cat" aria-labelledby={`cat-${cat.id}`}>
-          <h2 id={`cat-${cat.id}`}>
-            {cat.label} <span className="lib-cat-count">{cat.modules.length}</span>
+      {shown.map((dom) => (
+        <section key={dom.id} className="lib-cat" aria-labelledby={`dom-${dom.id}`}>
+          <h2 id={`dom-${dom.id}`}>
+            {dom.label} <span className="lib-cat-count">{dom.categories.reduce((n, c) => n + c.modules.length, 0)}</span>
           </h2>
-          {cat.modules.map((m) => (
-            <ModuleCard
-              key={m.id}
-              meta={m}
-              progress={progress === undefined ? undefined : (progress.get(m.id) ?? null)}
-              perDay={settings?.newPerDay ?? 20}
-            />
+          {dom.categories.map((cat) => (
+            <section key={cat.id} className="lib-subcat" aria-labelledby={`cat-${cat.id}`}>
+              <h3 id={`cat-${cat.id}`}>
+                {cat.label} <span className="lib-cat-count">{cat.modules.length}</span>
+              </h3>
+              {cat.modules.map((m) => (
+                <ModuleCard
+                  key={m.id}
+                  meta={m}
+                  progress={progress === undefined ? undefined : (progress.get(m.id) ?? null)}
+                  perDay={settings?.newPerDay ?? 20}
+                />
+              ))}
+            </section>
           ))}
         </section>
       ))}
@@ -254,7 +286,7 @@ function ModuleCard({ meta, progress, perDay }: { meta: ModuleMeta; progress: Pr
   return (
     <article className="card module" aria-labelledby={headingId}>
       <div className="module-head">
-        <h3 id={headingId}>{meta.title}</h3>
+        <h4 id={headingId}>{meta.title}</h4>
         <span className="chip">{meta.version}</span>
       </div>
       {meta.highlight && <p className="module-highlight">{meta.highlight}</p>}

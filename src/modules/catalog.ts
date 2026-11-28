@@ -1,21 +1,34 @@
-import type { ModuleCategory, ModuleLevel, ModuleMeta } from './types'
+import type { ModuleCategory, ModuleDomain, ModuleLevel, ModuleMeta } from './types'
 
 // Catalogue des modules prêts à l'emploi. Seules ces métadonnées sont chargées avec l'écran « Modules » :
 // le contenu de chaque module est un fichier séparé, téléchargé (et précaché hors ligne) à la demande.
 // Les compteurs `notes` / `cards` sont vérifiés par src/modules/modules.test.ts.
 
-// Ordre d'affichage : du plus demandé au moins demandé (permis puis langues : premières formations
-// financées par le CPF en 2025, voir DECISIONS.md).
-export const CATEGORIES: { id: ModuleCategory; label: string }[] = [
+// Deux niveaux : domaines puis sous-catégories. Ordre d'affichage : du plus demandé au moins demandé
+// (permis puis langues : premières formations financées par le CPF en 2025, voir DECISIONS.md).
+export const DOMAINS: { id: ModuleDomain; label: string }[] = [
   { id: 'permis', label: 'Permis de conduire' },
   { id: 'langues', label: 'Langues' },
-  { id: 'cloud', label: 'Cloud' },
-  { id: 'reseau', label: 'Réseau' },
-  { id: 'systemes', label: 'Systèmes' },
-  { id: 'securite', label: 'Cybersécurité' },
-  { id: 'gestion', label: 'Gestion de projet et services' },
+  { id: 'informatique', label: 'Informatique' },
+  { id: 'gestion', label: 'Gestion et méthodes' },
   { id: 'vie', label: 'Vie pratique' },
 ]
+
+export const CATEGORIES: { id: ModuleCategory; domain: ModuleDomain; label: string }[] = [
+  { id: 'auto', domain: 'permis', label: 'Voiture (permis B)' },
+  { id: 'moto', domain: 'permis', label: 'Moto (permis A)' },
+  { id: 'anglais', domain: 'langues', label: 'Anglais' },
+  { id: 'cloud', domain: 'informatique', label: 'Cloud' },
+  { id: 'reseau', domain: 'informatique', label: 'Réseau' },
+  { id: 'systemes', domain: 'informatique', label: 'Systèmes' },
+  { id: 'securite', domain: 'informatique', label: 'Cybersécurité' },
+  { id: 'projet', domain: 'gestion', label: 'Gestion de projet (agile)' },
+  { id: 'services', domain: 'gestion', label: 'Gestion des services (ITSM)' },
+  { id: 'secourisme', domain: 'vie', label: 'Secourisme' },
+]
+
+/** Domaine d'un module (via sa sous-catégorie). */
+export const domainOf = (m: Pick<ModuleMeta, 'category'>): ModuleDomain => CATEGORIES.find((c) => c.id === m.category)!.domain
 
 export const LEVELS: { id: ModuleLevel; label: string }[] = [
   { id: 'debutant', label: 'Débutant' },
@@ -122,7 +135,7 @@ export const MODULES: ModuleMeta[] = [
     id: 'code-auto',
     title: 'Code de la route — voiture',
     deckName: 'Code de la route (auto)',
-    category: 'permis',
+    category: 'auto',
     level: 'debutant',
     highlight: 'Le plus demandé',
     description:
@@ -142,7 +155,7 @@ export const MODULES: ModuleMeta[] = [
     id: 'code-moto',
     title: 'Code de la route — moto',
     deckName: 'Code de la route (moto)',
-    category: 'permis',
+    category: 'moto',
     level: 'debutant',
     description:
       "L'épreuve théorique moto (ETM) des permis A1, A2 et A : équipement, trajectoires, freinage, visibilité, inter-files, passager. À compléter avec le module voiture pour les règles communes.",
@@ -215,7 +228,7 @@ export const MODULES: ModuleMeta[] = [
     id: 'itil',
     title: 'ITIL Foundation',
     deckName: 'ITIL Foundation',
-    category: 'gestion',
+    category: 'services',
     level: 'debutant',
     description:
       'La gestion des services numériques : valeur et co-création, 4 dimensions, principes directeurs, système de valeur, cycle de vie, pratiques clés. Couvre ITIL 4 et ITIL (Version 5).',
@@ -233,7 +246,7 @@ export const MODULES: ModuleMeta[] = [
     id: 'scrum-psm1',
     title: 'Scrum — Professional Scrum Master I',
     deckName: 'Scrum (PSM I)',
-    category: 'gestion',
+    category: 'projet',
     level: 'debutant',
     description:
       'Le Guide Scrum 2020 en détail : piliers, valeurs, responsabilités, événements, artefacts et engagements, plus les pièges classiques de l’examen.',
@@ -251,7 +264,7 @@ export const MODULES: ModuleMeta[] = [
     id: 'premiers-secours',
     title: 'Premiers secours',
     deckName: 'Premiers secours (PSC1)',
-    category: 'vie',
+    category: 'secourisme',
     level: 'debutant',
     description:
       'Les gestes qui sauvent : protéger, alerter, étouffement, hémorragie, perte de connaissance, arrêt cardiaque et défibrillateur, malaises et traumatismes.',
@@ -268,7 +281,7 @@ export const MODULES: ModuleMeta[] = [
     id: 'toeic',
     title: 'TOEIC — anglais professionnel',
     deckName: 'TOEIC',
-    category: 'langues',
+    category: 'anglais',
     level: 'intermediaire',
     description:
       "Le vocabulaire de l'anglais professionnel par thème (bureau, RH, finance, voyages, commerce), les faux amis, la grammaire de la partie 5 et les verbes à particule, plus le format de l'examen.",

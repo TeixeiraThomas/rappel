@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { moduleNotes, moduleSize } from '../lib/library'
 import { mdToHtml } from '../lib/markdown'
 import { normalizeTags, validateNote } from '../lib/notes'
-import { CATEGORIES, MODULES } from './catalog'
+import { CATEGORIES, DOMAINS, MODULES } from './catalog'
 
 const SVG_RE = /<svg[\s\S]*?<\/svg>/g
 
@@ -18,6 +18,9 @@ describe('catalogue des modules', () => {
       expect(m.deckName).not.toContain('::')
       expect(CATEGORIES.map((c) => c.id)).toContain(m.category)
     }
+    // Chaque sous-catégorie appartient à un domaine connu ; chaque domaine a au moins un module.
+    for (const c of CATEGORIES) expect(DOMAINS.map((d) => d.id)).toContain(c.domain)
+    for (const d of DOMAINS) expect(CATEGORIES.some((c) => c.domain === d.id && MODULES.some((m) => m.category === c.id))).toBe(true)
   })
 })
 
