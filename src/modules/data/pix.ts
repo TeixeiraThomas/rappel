@@ -1,0 +1,110 @@
+import type { ModuleContent } from '../types'
+
+// Pix : compétences numériques d'après le référentiel public (5 domaines, 16 compétences, cadre européen DigComp).
+// Contenu original : notions et bons réflexes, sans reprise des épreuves de la plateforme.
+const content: ModuleContent = {
+  chapters: [
+    {
+      title: 'Le référentiel',
+      tag: 'referentiel',
+      cards: [
+        ["Pix évalue quoi ?", "Les compétences numériques, d'après un référentiel de 5 domaines et 16 compétences (inspiré du cadre européen DigComp)"],
+        ["Les 5 domaines du référentiel Pix ?", "Informations et données · Communication et collaboration · Création de contenu · Protection et sécurité · Environnement numérique"],
+        ["Domaine « Informations et données » : 3 compétences ?", "Mener une recherche et une veille d'information · Gérer des données · Traiter des données"],
+        ["Domaine « Communication et collaboration » : 4 compétences ?", "Interagir · Partager et publier · Collaborer · S'insérer dans le monde numérique"],
+        ["Domaine « Création de contenu » : 4 compétences ?", "Développer des documents textuels · Développer des documents multimédia · Adapter les documents à leur finalité · Programmer"],
+        ["Domaine « Protection et sécurité » : 3 compétences ?", "Sécuriser l'environnement numérique · Protéger les données personnelles et la vie privée · Protéger la santé, le bien-être et l'environnement"],
+        ["Domaine « Environnement numérique » : 2 compétences ?", "Résoudre des problèmes techniques · Construire un environnement numérique"],
+        ["Comment Pix mesure-t-il le niveau ?", "Par des questions adaptatives : la difficulté s'ajuste aux réponses ; le score s'exprime en pix"],
+      ],
+    },
+    {
+      title: 'Rechercher et gérer l’information',
+      tag: 'information',
+      cards: [
+        ["Rechercher une expression exacte dans un moteur de recherche ?", "La mettre entre guillemets : \"énergie solaire\""],
+        ["Exclure un mot d'une recherche ?", "Le précéder d'un signe moins : jaguar -voiture"],
+        ["Limiter une recherche à un site ?", "site: suivi du domaine (ex. site:service-public.fr)"],
+        ["Chercher un type de fichier précis ?", "filetype: suivi de l'extension (ex. filetype:pdf)"],
+        ["Vérifier la fiabilité d'une source : 3 questions ?", "Qui est l'auteur ? Quelle est la date ? D'autres sources fiables disent-elles la même chose ?"],
+        ["Veille d'information : outil classique ?", "Les flux RSS (ou alertes) qui signalent les nouveaux contenus d'un site"],
+        ["Dans https://www.exemple.fr/page, quel est le nom de domaine ?", "exemple.fr"],
+        ["Que signifie le « s » de https ?", "Sécurisé : les échanges entre le navigateur et le site sont chiffrés"],
+        ["Chemin d'accès d'un fichier ?", "La suite des dossiers qui mène au fichier (ex. Documents/Cours/notes.pdf)"],
+        ["Format CSV ?", "Un tableau en texte brut, une ligne par enregistrement, valeurs séparées par des virgules ou points-virgules"],
+        ["1 Mo, c'est combien de Ko ?", "1 000 Ko (en informatique on rencontre aussi 1 024 Kio = 1 Mio)"],
+        ["Ordre croissant : Go, Ko, To, Mo ?", "Ko < Mo < Go < To"],
+      ],
+    },
+    {
+      title: 'Communiquer et collaborer',
+      tag: 'communication',
+      cards: [
+        ["Courriel : différence entre Cc et Cci ?", "Cc : copie visible de tous · Cci : copie cachée, les autres destinataires ne voient pas l'adresse"],
+        ["Répondre ou Répondre à tous ?", "Répondre : seulement à l'expéditeur · Répondre à tous : à l'expéditeur et à tous les destinataires (À et Cc)"],
+        ["Transférer un courriel ?", "L'envoyer à une nouvelle personne, avec ses pièces jointes"],
+        ["Pièce jointe trop lourde : solution ?", "Déposer le fichier sur un espace de stockage en ligne et envoyer un lien de partage"],
+        ["Document partagé : droits « lecture » et « modification » ?", "Lecture : on peut consulter · Modification : on peut changer le contenu"],
+        ["Suivi des modifications (traitement de texte) ?", "Fonction qui affiche chaque changement, à accepter ou refuser"],
+        ["Identité numérique ?", "L'ensemble des traces laissées en ligne par une personne (profils, publications, commentaires…)"],
+        ["Licence Creative Commons BY ?", "On peut réutiliser l'œuvre en citant l'auteur"],
+        ["Mention NC dans une licence Creative Commons ?", "Pas d'utilisation commerciale"],
+        ["Mention ND dans une licence Creative Commons ?", "Pas de modification de l'œuvre (pas d'œuvre dérivée)"],
+        ["Mention SA dans une licence Creative Commons ?", "Partage dans les mêmes conditions : les œuvres dérivées gardent la même licence"],
+      ],
+    },
+    {
+      title: 'Créer des contenus',
+      tag: 'contenus',
+      cards: [
+        ["Pourquoi utiliser des styles de titres dans un traitement de texte ?", "Pour une mise en forme cohérente et générer automatiquement la table des matières"],
+        ["Saut de page ou appuyer plusieurs fois sur Entrée ?", "Le saut de page : le contenu suivant commence toujours sur une nouvelle page"],
+        ["Format à privilégier pour envoyer un document non modifiable ?", "PDF"],
+        ["Format ouvert de traitement de texte ?", "ODT (OpenDocument) ; DOCX est le format de Word"],
+        ["Image JPEG ou PNG ?", "JPEG : photos (compression avec perte) · PNG : logos, captures, transparence (sans perte)"],
+        ["Format vectoriel d'image ?", "SVG : l'image reste nette quel que soit l'agrandissement"],
+        ["Définition d'une image ?", "Son nombre de pixels en largeur × hauteur (ex. 1920 × 1080)"],
+        ["Texte alternatif d'une image ?", "Une description lue par les lecteurs d'écran : rend le document accessible"],
+        ["Programmer : qu'est-ce qu'une boucle ?", "Une instruction qui répète un bloc tant qu'une condition est vraie ou un nombre de fois donné"],
+        ["Programmer : qu'est-ce qu'une variable ?", "Un nom qui désigne une valeur stockée et modifiable"],
+      ],
+    },
+    {
+      title: 'Sécurité et vie privée',
+      tag: 'securite',
+      cards: [
+        ["Mot de passe solide ?", "Long (au moins 12 caractères), unique pour chaque compte, mélange de types de caractères, ou une phrase de passe"],
+        ["Gestionnaire de mots de passe ?", "Un coffre chiffré qui génère et retient des mots de passe uniques"],
+        ["Double authentification ?", "Un second facteur (code SMS, application, clé) en plus du mot de passe"],
+        ["Hameçonnage (phishing) ?", "Un faux message qui imite un organisme pour voler des identifiants ou des données bancaires"],
+        ["Indices d'un courriel d'hameçonnage ?", "Urgence ou menace, adresse d'expéditeur douteuse, lien vers un domaine inconnu, demande d'identifiants"],
+        ["Rançongiciel ?", "Un logiciel malveillant qui chiffre les fichiers et réclame une rançon"],
+        ["Meilleure protection contre la perte de données ?", "Des sauvegardes régulières, dont une copie hors de l'appareil"],
+        ["Pourquoi faire les mises à jour ?", "Elles corrigent des failles de sécurité"],
+        ["RGPD ?", "Règlement général sur la protection des données : encadre la collecte et l'usage des données personnelles dans l'UE"],
+        ["Qui contrôle l'application du RGPD en France ?", "La CNIL"],
+        ["Cookies : que peut-on refuser ?", "Les cookies non essentiels (publicité, mesure d'audience non exemptée) : le refus doit être aussi simple que l'acceptation"],
+        ["Navigation privée : protège-t-elle de tout ?", "Non : elle n'enregistre pas l'historique sur l'appareil, mais le site et le fournisseur d'accès voient la connexion"],
+        ["Impact environnemental du numérique : principal poste ?", "La fabrication des appareils : les garder plus longtemps est le geste le plus efficace"],
+      ],
+    },
+    {
+      title: 'Environnement numérique',
+      tag: 'environnement',
+      cards: [
+        ["Système d'exploitation ?", "Le logiciel qui gère le matériel et fait fonctionner les applications (Windows, macOS, Linux, Android, iOS)"],
+        ["Mémoire vive (RAM) ou stockage ?", "RAM : mémoire de travail, vidée à l'extinction · stockage (SSD, disque) : conserve les fichiers"],
+        ["Extension .exe ?", "Un programme exécutable Windows : ne jamais ouvrir une pièce jointe .exe inattendue"],
+        ["Compresser des fichiers ?", "Les regrouper dans une archive plus légère (ex. .zip)"],
+        ["Application qui ne répond plus : que faire ?", "Forcer sa fermeture (gestionnaire des tâches), puis la relancer ; redémarrer l'appareil si besoin"],
+        ["Copier, couper, coller (raccourcis Windows) ?", "Ctrl+C, Ctrl+X, Ctrl+V"],
+        ["Annuler la dernière action ?", "Ctrl+Z (Cmd+Z sur Mac)"],
+        ["Synchronisation dans le cloud ?", "Un dossier dont le contenu est copié en ligne et mis à jour sur tous les appareils connectés"],
+        ["Adresse IP ?", "L'identifiant d'un appareil sur un réseau, qui permet de lui envoyer des données"],
+        ["Wi-Fi public : précaution ?", "Éviter les opérations sensibles, ou utiliser un VPN ; vérifier que les sites sont en https"],
+      ],
+    },
+  ],
+}
+
+export default content

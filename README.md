@@ -7,9 +7,11 @@ synchronise entre PC et téléphone.
 
 ## Fonctionnalités
 
-- **Modules prêts à réviser** (écran « Modules ») : AWS Cloud Practitioner et Solutions Architect Associate, Azure AZ-900 et AZ-104,
+- **Modules prêts à réviser** (écran « Modules ») : AWS Cloud Practitioner et Solutions Architect Associate, Azure AZ-900 et AZ-104, TOEIC (anglais professionnel), permis bateau côtier, Pix, TOSA Excel,
   Google Cloud Digital Leader, Code de la route voiture (avec panneaux dessinés) et moto, CCNA, Linux Essentials, CompTIA Security+,
-  ITIL Foundation, Scrum PSM I, Premiers secours — environ 2 600 cartes, un sous-paquet par chapitre du programme. Détails plus bas.
+  ITIL Foundation, Scrum PSM I, Premiers secours — environ 3 000 cartes, un sous-paquet par chapitre du programme. Rangés en
+  5 domaines et 12 sous-catégories (du plus demandé au moins demandé : permis, puis langues), filtrables par niveau, « Mes modules » / « À découvrir » et par recherche ; ajout du module entier ou chapitre
+  par chapitre, avancement par module et par chapitre, retrait en un geste. Détails plus bas.
 - **Paquets et sous-paquets** (arbre repliable), **tags**, **recherche** (`mot`, `"phrase"`, `tag:cisco`, `deck:réseau`, `type:cloze`).
 - **Cartes** : recto/verso, recto/verso + inverse, texte à trous (`{{c1::réponse::indice}}`), Markdown, blocs de code avec bouton « Copier », images (import ou collage).
 - **Révision** : recto → réponse → 4 boutons (À revoir, Difficile, Bien, Facile) avec l'intervalle suivant affiché. Clavier sur PC, balayage sur mobile, annulation de la dernière réponse.
@@ -137,14 +139,30 @@ La synchro utilise Firebase (offre gratuite Spark) : **Authentication** (e-mail 
 avec un chapitre « L'examen » (format, note requise, pièges). « Ajouter » crée un paquet racine et un sous-paquet par chapitre ;
 les cartes arrivent dans l'ordre du programme, au rythme du réglage « nouvelles cartes par jour ».
 
-| Catégorie | Modules (version visée) |
+| Domaine › sous-catégorie | Modules (version visée, niveau) |
 |---|---|
-| Cloud | AWS Cloud Practitioner (CLF-C02), AWS Solutions Architect Associate (SAA-C03), Azure Fundamentals (AZ-900), Azure Administrator (AZ-104), Google Cloud Digital Leader (programme d'août 2026) |
-| Permis | Code de la route voiture (ETG : 10 thèmes officiels + 60 panneaux dessinés), Code de la route moto (ETM) |
-| Réseau et systèmes | CCNA 200-301 (cartes S01 à S18), Linux Essentials (010-160) |
-| Sécurité et méthodes | CompTIA Security+ (SY0-701 / SY0-801), ITIL Foundation (ITIL 4 et Version 5), Scrum PSM I (Guide 2020) |
-| Vie pratique | Premiers secours (PSC1, notes SST) |
+| Permis de conduire › Voiture (permis B) | Code de la route voiture (ETG : 10 thèmes officiels + 60 panneaux dessinés, badge « Le plus demandé ») |
+| Permis de conduire › Moto (permis A) | Code de la route moto (ETM) |
+| Permis de conduire › Bateau (permis plaisance) | Permis bateau option côtière (balisage, règles de barre, feux, signaux et VHF, sécurité, météo et marées) |
+| Langues › Anglais | TOEIC (Listening and Reading / 4 compétences, intermédiaire) : format de l'examen, vocabulaire professionnel par thème, faux amis, grammaire de la partie 5, verbes à particule |
+| Informatique › Bureautique et numérique | Pix (référentiel de 5 domaines et 16 compétences, débutant), TOSA Excel (formules, fonctions, tableaux croisés dynamiques, intermédiaire) |
+| Informatique › Cloud | AWS Cloud Practitioner (CLF-C02, débutant), AWS Solutions Architect Associate (SAA-C03, intermédiaire), Azure Fundamentals (AZ-900, débutant), Azure Administrator (AZ-104, intermédiaire), Google Cloud Digital Leader (programme d'août 2026, débutant) |
+| Informatique › Réseau | CCNA 200-301 (cartes S01 à S18, intermédiaire) |
+| Informatique › Systèmes | Linux Essentials (010-160, débutant) |
+| Informatique › Cybersécurité | CompTIA Security+ (SY0-701 / SY0-801, intermédiaire) |
+| Gestion et méthodes › Gestion de projet (agile) | Scrum PSM I (Guide 2020, débutant) |
+| Gestion et méthodes › Gestion des services (ITSM) | ITIL Foundation (ITIL 4 et Version 5, débutant) |
+| Vie pratique › Secourisme | Premiers secours (PSC1, notes SST) |
 
+- **Trouver un module** : filtres « Tous / Mes modules / À découvrir », par domaine puis par sous-catégorie (avec le nombre de
+  modules ; les sous-catégories apparaissent une fois un domaine choisi), par niveau,
+  et recherche sans accents ni casse sur le titre, le code d'examen et la description.
+- **Chapitre par chapitre** : « Programme, chapitres et examen » liste les chapitres ; « + Ajouter » n'ajoute que ce chapitre
+  (statut « Ajouté en partie »), « Compléter » ajoute le reste. Les cartes gardent l'ordre du programme.
+- **Avancement** : pour chaque module et chaque chapitre ajoutés, une barre « vues / acquises » (acquise = en révision avec un
+  intervalle d'au moins 21 jours) et le nombre de cartes à revoir aujourd'hui ; « Étudier » est aussi proposé par chapitre.
+- **Retirer** : supprime les notes du module, leurs cartes et les paquets du module devenus vides, après confirmation et une
+  sauvegarde automatique. Vos propres cartes rangées dans un paquet du module sont conservées, avec leur paquet.
 - **Mise à jour** : réajouter un module (« Mettre à jour » / « Compléter ») ajoute les cartes nouvelles et corrige celles que vous
   n'avez jamais modifiées ; une carte que vous avez modifiée n'est plus touchée, et rien n'est supprimé.
 - **Hors ligne** : le contenu des modules est précaché ; un module ajouté se synchronise comme vos autres cartes.

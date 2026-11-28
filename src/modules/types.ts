@@ -20,7 +20,26 @@ export interface ModuleContent {
   chapters: ModuleChapter[]
 }
 
-export type ModuleCategory = 'cloud' | 'permis' | 'reseau' | 'securite' | 'vie'
+/** Grand domaine (premier niveau de classement dans la bibliothèque). */
+export type ModuleDomain = 'permis' | 'langues' | 'informatique' | 'gestion' | 'vie'
+
+/** Sous-catégorie, rattachée à un domaine dans le catalogue (CATEGORIES). */
+export type ModuleCategory =
+  | 'auto'
+  | 'moto'
+  | 'bateau'
+  | 'anglais'
+  | 'bureautique'
+  | 'cloud'
+  | 'reseau'
+  | 'systemes'
+  | 'securite'
+  | 'projet'
+  | 'services'
+  | 'secourisme'
+
+/** Niveau visé : aide à choisir par où commencer. */
+export type ModuleLevel = 'debutant' | 'intermediaire' | 'avance'
 
 export interface ModuleMeta {
   /** Identifiant stable (sert aussi de tag à toutes les cartes du module). */
@@ -30,6 +49,9 @@ export interface ModuleMeta {
   /** Nom du paquet racine créé à l'ajout. */
   deckName: string
   category: ModuleCategory
+  level: ModuleLevel
+  /** Badge mis en avant dans la bibliothèque (ex. « Le plus demandé »). */
+  highlight?: string
   /** Une ou deux phrases : pour qui, quoi. */
   description: string
   /** Version du programme visée (ex. « CLF-C02 »). */

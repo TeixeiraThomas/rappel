@@ -1,15 +1,41 @@
-import type { ModuleCategory, ModuleMeta } from './types'
+import type { ModuleCategory, ModuleDomain, ModuleLevel, ModuleMeta } from './types'
 
 // Catalogue des modules prêts à l'emploi. Seules ces métadonnées sont chargées avec l'écran « Modules » :
 // le contenu de chaque module est un fichier séparé, téléchargé (et précaché hors ligne) à la demande.
 // Les compteurs `notes` / `cards` sont vérifiés par src/modules/modules.test.ts.
 
-export const CATEGORIES: { id: ModuleCategory; label: string }[] = [
-  { id: 'cloud', label: 'Cloud' },
+// Deux niveaux : domaines puis sous-catégories. Ordre d'affichage : du plus demandé au moins demandé
+// (permis puis langues : premières formations financées par le CPF en 2025, voir DECISIONS.md).
+export const DOMAINS: { id: ModuleDomain; label: string }[] = [
   { id: 'permis', label: 'Permis de conduire' },
-  { id: 'reseau', label: 'Réseau et systèmes' },
-  { id: 'securite', label: 'Sécurité et méthodes' },
+  { id: 'langues', label: 'Langues' },
+  { id: 'informatique', label: 'Informatique' },
+  { id: 'gestion', label: 'Gestion et méthodes' },
   { id: 'vie', label: 'Vie pratique' },
+]
+
+export const CATEGORIES: { id: ModuleCategory; domain: ModuleDomain; label: string }[] = [
+  { id: 'auto', domain: 'permis', label: 'Voiture (permis B)' },
+  { id: 'moto', domain: 'permis', label: 'Moto (permis A)' },
+  { id: 'bateau', domain: 'permis', label: 'Bateau (permis plaisance)' },
+  { id: 'anglais', domain: 'langues', label: 'Anglais' },
+  { id: 'bureautique', domain: 'informatique', label: 'Bureautique et numérique' },
+  { id: 'cloud', domain: 'informatique', label: 'Cloud' },
+  { id: 'reseau', domain: 'informatique', label: 'Réseau' },
+  { id: 'systemes', domain: 'informatique', label: 'Systèmes' },
+  { id: 'securite', domain: 'informatique', label: 'Cybersécurité' },
+  { id: 'projet', domain: 'gestion', label: 'Gestion de projet (agile)' },
+  { id: 'services', domain: 'gestion', label: 'Gestion des services (ITSM)' },
+  { id: 'secourisme', domain: 'vie', label: 'Secourisme' },
+]
+
+/** Domaine d'un module (via sa sous-catégorie). */
+export const domainOf = (m: Pick<ModuleMeta, 'category'>): ModuleDomain => CATEGORIES.find((c) => c.id === m.category)!.domain
+
+export const LEVELS: { id: ModuleLevel; label: string }[] = [
+  { id: 'debutant', label: 'Débutant' },
+  { id: 'intermediaire', label: 'Intermédiaire' },
+  { id: 'avance', label: 'Avancé' },
 ]
 
 export const MODULES: ModuleMeta[] = [
@@ -18,6 +44,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'AWS Certified Cloud Practitioner',
     deckName: 'AWS Cloud Practitioner (CLF-C02)',
     category: 'cloud',
+    level: 'debutant',
     description:
       "La certification d'entrée AWS : concepts du cloud, sécurité, services principaux, facturation et support. Idéale pour débuter, technique ou non.",
     version: 'CLF-C02',
@@ -36,6 +63,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'AWS Certified Solutions Architect – Associate',
     deckName: 'AWS Solutions Architect Associate (SAA-C03)',
     category: 'cloud',
+    level: 'intermediaire',
     description:
       'Concevoir des architectures AWS sécurisées, résilientes, performantes et économiques : VPC, EC2, stockage, bases de données, découplage, haute disponibilité.',
     version: 'SAA-C03',
@@ -54,6 +82,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Microsoft Azure Fundamentals',
     deckName: 'Azure Fundamentals (AZ-900)',
     category: 'cloud',
+    level: 'debutant',
     description:
       "Les bases d'Azure : modèles de cloud, régions et zones, calcul, réseau, stockage, identité (Entra ID), gouvernance et coûts.",
     version: 'AZ-900',
@@ -72,6 +101,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Microsoft Azure Administrator',
     deckName: 'Azure Administrator (AZ-104)',
     category: 'cloud',
+    level: 'intermediaire',
     description:
       'Administrer Azure au quotidien : identités et RBAC, Azure Policy, stockage, machines virtuelles, conteneurs, réseaux virtuels, supervision et sauvegarde.',
     version: 'AZ-104',
@@ -90,6 +120,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Google Cloud Digital Leader',
     deckName: 'Google Cloud Digital Leader',
     category: 'cloud',
+    level: 'debutant',
     description:
       'La certification fondamentale de Google Cloud : transformation numérique, données, IA, modernisation des applications, sécurité et opérations.',
     version: "Programme d'août 2026",
@@ -106,7 +137,9 @@ export const MODULES: ModuleMeta[] = [
     id: 'code-auto',
     title: 'Code de la route — voiture',
     deckName: 'Code de la route (auto)',
-    category: 'permis',
+    category: 'auto',
+    level: 'debutant',
+    highlight: 'Le plus demandé',
     description:
       "L'examen théorique général (ETG) du permis B : les 10 thèmes officiels, les panneaux, les vitesses, les distances, l'alcool, les premiers secours.",
     version: 'ETG',
@@ -124,7 +157,8 @@ export const MODULES: ModuleMeta[] = [
     id: 'code-moto',
     title: 'Code de la route — moto',
     deckName: 'Code de la route (moto)',
-    category: 'permis',
+    category: 'moto',
+    level: 'debutant',
     description:
       "L'épreuve théorique moto (ETM) des permis A1, A2 et A : équipement, trajectoires, freinage, visibilité, inter-files, passager. À compléter avec le module voiture pour les règles communes.",
     version: 'ETM',
@@ -142,6 +176,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'Cisco CCNA',
     deckName: 'CCNA 200-301',
     category: 'reseau',
+    level: 'intermediaire',
     description:
       'Le programme CCNA en 18 semaines : modèle OSI, IPv4/IPv6 et sous-réseaux, VLAN, STP, OSPF, ACL, NAT, sécurité, Wi-Fi, automatisation.',
     version: '200-301',
@@ -158,7 +193,8 @@ export const MODULES: ModuleMeta[] = [
     id: 'linux-essentials',
     title: 'Linux Essentials (LPI)',
     deckName: 'Linux Essentials (010-160)',
-    category: 'reseau',
+    category: 'systemes',
+    level: 'debutant',
     description:
       'Bien démarrer sous Linux : distributions et licences libres, ligne de commande, fichiers, scripts, processus, utilisateurs et permissions.',
     version: '010-160 v1.6',
@@ -176,6 +212,7 @@ export const MODULES: ModuleMeta[] = [
     title: 'CompTIA Security+',
     deckName: 'CompTIA Security+',
     category: 'securite',
+    level: 'intermediaire',
     description:
       'La référence de la cybersécurité de base : menaces et attaques, cryptographie, architecture, opérations de sécurité, gestion des risques et conformité.',
     version: 'SY0-701 / SY0-801',
@@ -193,7 +230,8 @@ export const MODULES: ModuleMeta[] = [
     id: 'itil',
     title: 'ITIL Foundation',
     deckName: 'ITIL Foundation',
-    category: 'securite',
+    category: 'services',
+    level: 'debutant',
     description:
       'La gestion des services numériques : valeur et co-création, 4 dimensions, principes directeurs, système de valeur, cycle de vie, pratiques clés. Couvre ITIL 4 et ITIL (Version 5).',
     version: 'ITIL 4 / Version 5',
@@ -210,7 +248,8 @@ export const MODULES: ModuleMeta[] = [
     id: 'scrum-psm1',
     title: 'Scrum — Professional Scrum Master I',
     deckName: 'Scrum (PSM I)',
-    category: 'securite',
+    category: 'projet',
+    level: 'debutant',
     description:
       'Le Guide Scrum 2020 en détail : piliers, valeurs, responsabilités, événements, artefacts et engagements, plus les pièges classiques de l’examen.',
     version: 'Guide Scrum 2020',
@@ -227,7 +266,8 @@ export const MODULES: ModuleMeta[] = [
     id: 'premiers-secours',
     title: 'Premiers secours',
     deckName: 'Premiers secours (PSC1)',
-    category: 'vie',
+    category: 'secourisme',
+    level: 'debutant',
     description:
       'Les gestes qui sauvent : protéger, alerter, étouffement, hémorragie, perte de connaissance, arrêt cardiaque et défibrillateur, malaises et traumatismes.',
     version: 'PSC1 / SST',
@@ -238,6 +278,78 @@ export const MODULES: ModuleMeta[] = [
     notes: 81,
     cards: 81,
     load: () => import('./data/premiers-secours').then((m) => m.default),
+  },
+  {
+    id: 'toeic',
+    title: 'TOEIC — anglais professionnel',
+    deckName: 'TOEIC',
+    category: 'anglais',
+    level: 'intermediaire',
+    description:
+      "Le vocabulaire de l'anglais professionnel par thème (bureau, RH, finance, voyages, commerce), les faux amis, la grammaire de la partie 5 et les verbes à particule, plus le format de l'examen.",
+    version: 'L&R · 4 compétences',
+    exam: [
+      { label: 'Questions', value: '200 (Listening and Reading), questionnaire à choix multiples' },
+      { label: 'Durée', value: '2 h (45 min d’écoute, 75 min de lecture)' },
+      { label: 'Score', value: '10 à 990 ; environ 785 pour B2' },
+      { label: 'CPF', value: 'Version 4 compétences (avec expression orale et écrite)' },
+    ],
+    notes: 229,
+    cards: 231,
+    load: () => import('./data/toeic').then((m) => m.default),
+  },
+  {
+    id: 'permis-cotier',
+    title: 'Permis bateau — option côtière',
+    deckName: 'Permis bateau côtier',
+    category: 'bateau',
+    level: 'debutant',
+    description:
+      'Le permis plaisance en mer : balisage, règles de barre, feux des navires, signaux et VHF, sécurité, réglementation, météo et marées.',
+    version: 'Option côtière',
+    exam: [
+      { label: 'Questions', value: '30 (QCM), 5 fautes au maximum' },
+      { label: 'Formation', value: 'Au moins 5 h de théorie et 3 h 30 de pratique' },
+      { label: 'Zone', value: 'Jusqu’à 6 milles d’un abri ; obligatoire au-delà de 6 CV' },
+    ],
+    notes: 104,
+    cards: 104,
+    load: () => import('./data/permis-cotier').then((m) => m.default),
+  },
+  {
+    id: 'pix',
+    title: 'Pix — compétences numériques',
+    deckName: 'Pix',
+    category: 'bureautique',
+    level: 'debutant',
+    description:
+      'Les 5 domaines et 16 compétences du référentiel Pix : recherche d’information, communication, création de contenus, sécurité et vie privée, environnement numérique.',
+    version: 'Référentiel Pix',
+    exam: [
+      { label: 'Format', value: 'Questions adaptatives en ligne ; certification surveillée en centre agréé' },
+      { label: 'Score', value: 'En pix, par compétence et au total' },
+    ],
+    notes: 64,
+    cards: 64,
+    load: () => import('./data/pix').then((m) => m.default),
+  },
+  {
+    id: 'tosa-excel',
+    title: 'TOSA Excel',
+    deckName: 'TOSA Excel',
+    category: 'bureautique',
+    level: 'intermediaire',
+    description:
+      'Excel pour la certification TOSA : navigation et raccourcis, mise en forme, formules et références, fonctions (SI, RECHERCHEV, SOMME.SI.ENS…), tris, filtres, tableaux croisés dynamiques et graphiques.',
+    version: 'TOSA',
+    exam: [
+      { label: 'Questions', value: '35, QCM et exercices pratiques, test adaptatif' },
+      { label: 'Durée', value: '60 min' },
+      { label: 'Score', value: '1 à 1 000 ; opérationnel de 551 à 725' },
+    ],
+    notes: 71,
+    cards: 71,
+    load: () => import('./data/tosa-excel').then((m) => m.default),
   },
 ]
 
